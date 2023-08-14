@@ -17,7 +17,7 @@ def main(data):
 
     if not os.path.exists("hpl-2.3/"):
 
-        slurm_script_path = 'setup.slurm'
+        slurm_script_path = 'SLURM/setup.slurm'
         #Run the SLURM script directly
         try:
             subprocess.run(['bash', slurm_script_path], check=True)
@@ -50,7 +50,7 @@ def edit_HPL_dat(limits,hyper_parameters):
 
 def run_hpl_benchmark():
 
-    shell_script = "run_hpl.slurm"
+    shell_script = "SLURM/run_hpl.slurm"
     try:
         subprocess.run(["bash", shell_script], check=True)
         print("SLURM script executed successfully.")
