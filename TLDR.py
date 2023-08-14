@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
-
 import optuna
 import subprocess
 import pickle
 import sys
+import os
 
 # Location of important hyperparameters
 lines = {
@@ -16,17 +15,17 @@ lines = {
 def main(data):
     variable_data, module_data, runtime_data = data
 
-    #slurm_script_path = 'setup.slurm'
+    if not os.path.exists("hpl-2.3/"):
 
-    #Run the SLURM script directly
-    #try:
-    #    subprocess.run(['bash', slurm_script_path], check=True)
-    #    print("SLURM script executed successfully.")
-    #except subprocess.CalledProcessError as e:
-    #    print("Error executing SLURM script:", e)
+        slurm_script_path = 'setup.slurm'
+        #Run the SLURM script directly
+        try:
+            subprocess.run(['bash', slurm_script_path], check=True)
+            print("SLURM script executed successfully.")
+        except subprocess.CalledProcessError as e:
+            print("Error executing SLURM script:", e)
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study_name="trial-study"
     study.optimize(objective, n_trials=10)
 
     print('Best Parameters:')
