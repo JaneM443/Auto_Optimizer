@@ -15,7 +15,7 @@ lines = {
 def main(data):
     variable_data, module_data, runtime_data = data
 
-    if not os.path.exists("hpl-2.3/"):
+    if not os.path.exists("hpl-2.3/c"):
 
         slurm_script_path = 'SLURM/setup.slurm'
         #Run the SLURM script directly
