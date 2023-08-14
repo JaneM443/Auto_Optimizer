@@ -12,6 +12,26 @@ lines = {
     'nb': 8,
 }
 
+def main(data):
+    variable_data, module_data, runtime_data = data
+
+    #slurm_script_path = 'setup.slurm'
+
+    #Run the SLURM script directly
+    #try:
+    #    subprocess.run(['bash', slurm_script_path], check=True)
+    #    print("SLURM script executed successfully.")
+    #except subprocess.CalledProcessError as e:
+    #    print("Error executing SLURM script:", e)
+
+    study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
+    study_name="trial-study"
+    study.optimize(objective, n_trials=10)
+
+    print('Best Parameters:')
+    best_params = study.best_params
+    print(best_params)
+
 def edit_HPL_dat(limits,hyper_parameters):
 
     for parameter in hyper_parameters:
@@ -82,24 +102,9 @@ def objective(trial):
 
 if __name__ == "__main__":
 
-    #bytes = sys.stdin.buffer.read()
-    #data = pickle.load(bytes)
-    #main(data)
+    FILE_PATH = sys.argv[1]
 
-    #slurm_script_path = 'setup.slurm'
+    with open(FILE_PATH, "rb") as file:
+        data = pickle.load(file)
 
-    #Run the SLURM script directly
-    #try:
-    #    subprocess.run(['bash', slurm_script_path], check=True)
-    #    print("SLURM script executed successfully.")
-    #except subprocess.CalledProcessError as e:
-    #    print("Error executing SLURM script:", e)
-
-    study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study_name="trial-study"
-    study.optimize(objective, n_trials=10)
-
-    print('Best Parameters:')
-    best_params = study.best_params
-    print(best_params)
-                         
+    main(data)                  
