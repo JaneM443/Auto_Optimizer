@@ -63,8 +63,7 @@ def retrieve_latest_gflops():
 
         summary_line = f.readlines()[38]
         gflops = summary_line.split()[-1]
-        print(gflops)
-        print(float(gflops))
+
         return float(gflops)
 
 def objective(trial):
@@ -91,7 +90,6 @@ def objective(trial):
     try:
         gflops= retrieve_latest_gflops()
     except:
-        print("Error retreiving GFLOPS:")
         return 0
     
 
