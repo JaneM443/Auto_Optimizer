@@ -3,33 +3,46 @@ import subprocess
 import pickle
 import sys
 import os
+import logging
 
-# Location of important hyperparameters
-lines = {
+def main(data):
+    AUTO_CLEAR = True
+
+    logging.basicConfig(
+        filename = "output.log",
+        level = logging.DEBUG,
+        filemode = 'a' if AUTO_CLEAR == False else 'w',
+        format = "%(levelname)s | %(asctime)s | '%(message)s' | %(funcName)s%(args)s @ line %(lineno)d in %(filename)s from %(module)s | StackInfo : %(stack_info)s | ProcessInfo : %(processName)s(%(process)d) | ThreadInfo : %(threadName)s(%(thread)d)")
+
+    logging.info("Logger Loaded")
+
+    variable_data, module_data, runtime_data = data
+    # Location of important hyperparameters
+    lines = {
     'n': 6,
     'p': 11,
     'q': 12,
     'nb': 8,
-}
+    }
 
-def main(data):
     variable_data, module_data, runtime_data = data
 
     if not os.path.exists("hpl-2.3/"):
+        logger.info("hpl-2.3/ not found -> Running 'SLURM/setup.slurm'")
 
         slurm_script_path = 'SLURM/setup.slurm'
         #Run the SLURM script directly
         try:
             subprocess.run(['bash', slurm_script_path], check=True)
-            print("SLURM script executed successfully.")
+            logger.debug("SLURM script executed successfully.")
         except subprocess.CalledProcessError as e:
-            print("Error executing SLURM script:", e)
+            logger.error(f"Error executing SLURM script: {e}")
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
     study.optimize(objective, n_trials=10)
 
-    print('Best Parameters:')
     best_params = study.best_params
+    print('Best Parameters:')#Leaving in for the moment. must be moved to an output script :)
     print(best_params)
 
 def edit_HPL_dat(limits,hyper_parameters):
@@ -49,16 +62,16 @@ def edit_HPL_dat(limits,hyper_parameters):
             f.writelines(hpl_input)
 
 def run_hpl_benchmark():
-
     shell_script = "SLURM/run_hpl.slurm"
+    
     try:
         subprocess.run(["bash", shell_script], check=True)
-        print("SLURM script executed successfully.")
+        logger.debug("SLURM script executed successfully.")
+    
     except subprocess.CalledProcessError as e:
-        print("Error executing SLURM script:", e)
+        logger.error(f"Error executing SLURM script: {e}")
 
-def retrieve_latest_gflops():
-
+def retrieve_latest_gflops(): #likely more robust to search instead of hard coding the value. id imagine itll be needed for generalization anyway
     with open('hpl-2.3/testing/hpl.log','r') as f:
 
         summary_line = f.readlines()[38]
@@ -69,7 +82,7 @@ def retrieve_latest_gflops():
 def objective(trial):
 
     # Hard coded Suggested limits
-    hyper_parameters = ['n','p','q','nb']
+    hyper_parameters = ['n','p','q','nb'] # this can and will be wetched from the input data from dougal
 
     # Set values within a range for each hyperparameter each trial
     limits = {
@@ -94,6 +107,7 @@ def objective(trial):
     
 
     if trial.should_prune():
+        logger.info("Trial pruned")
         raise optuna.exceptions.TrialPruned()
 
     return gflops
@@ -102,7 +116,11 @@ if __name__ == "__main__":
 
     FILE_PATH = sys.argv[1]
 
-    with open(FILE_PATH, "rb") as file:
-        data = pickle.load(file)
+    try:
+        with open(FILE_PATH, "rb") as file:
+            data = pickle.load(file)
+    except Exception as exception:
+        logger.critical(f"Error with loading Dougal data: {type(exception).__name__} - {exception}")
+        raise Exception
 
     main(data)                  
