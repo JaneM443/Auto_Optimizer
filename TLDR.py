@@ -5,9 +5,16 @@ import sys
 import os
 import logging
 import typing
-from typing import Any
+from typing import Any, List, Dict, Tuple
 
-def main(data : tuple[dict[str : tuple[Any, Any]], dict[str : list[str, ...]], dict[str : Any]]) -> None:
+def find_parameter_locations(file_path, parameter_names):
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    for line in lines:
+        print(line)
+
+def load_logger():
     #----------------------------------------------
     AUTO_CLEAR = True
     logging.basicConfig(
@@ -18,36 +25,47 @@ def main(data : tuple[dict[str : tuple[Any, Any]], dict[str : list[str, ...]], d
 
     logging.info("Logger Loaded")
     #----------------------------------------------
-    
+
+def main(data) -> None:
                      # dict[param_name: tuple[param_minimum, param_maximum]]
-    hyperparameters  : dict[str       : tuple[Any          , Any          ]] = data[0]
+    hyperparameters  : Dict[str       : Tuple[Any          , Any          ]] = data[0]
 
                      # dict[module_type: list[module1, ...]]
-    moduledata       : dict[str        : list[str    , ...]] = data[1]
+    moduledata       : Dict[str        : List[str    , ...]] = data[1]
 
                      # dict[parameter_name: parameter_value]
-    runtimeparameters: dict[str           : Any            ] = data[2]
+    runtimeparameters: Dict[str           : Any            ] = data[2]
+
+    #----------------------------------------------
+
+    hyperparameter_names = [name for name in hyperparameters.keys()]
+    hyperparameter_locations = find_parameter_locations(file_path = "HPL.dat", parameter_names = hyperparameter_names)
+
+    lines = {key : value for key, value in zip(hyperparameter_names, hyperparameter_locations)}
+
 
     # Location of important hyperparameters
-    lines = {
-    'n': 6,
-    'p': 11,
-    'q': 12,
-    'nb': 8,
-    }
+    
+    #!!! best practice to zero index the lines
+    # lines = {
+    # 'n': 6 -> 5,
+    # 'p': 11 -> 10,
+    # 'q': 12 -> 11,
+    # 'nb': 8 -> 7,
+    # }
 
-    hyperparameter_names = hyperparameters.keys()
+    
 
     if not os.path.exists("hpl-2.3/"):
-        logger.info("hpl-2.3/ not found -> Running 'SLURM/setup.slurm'")
+        logging.info("hpl-2.3/ not found -> Running 'SLURM/setup.slurm'")
 
         slurm_script_path = 'SLURM/setup.slurm'
         #Run the SLURM script directly
         try:
             subprocess.run(['bash', slurm_script_path], check=True)
-            logger.debug("SLURM script executed successfully.")
+            logging.debug("SLURM script executed successfully.")
         except subprocess.CalledProcessError as e:
-            logger.error(f"Error executing SLURM script: {e}")
+            logging.error(f"Error executing SLURM script: {e}")
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
     study.optimize(objective, n_trials=10)
@@ -62,13 +80,13 @@ def edit_HPL_dat(limits,hyper_parameters):
         with open('hpl-2.3/testing/HPL.dat', 'r') as f:
             hpl_input = f.readlines()
 
-        line = hpl_input[lines[parameter] - 1]
+        line = hpl_input[lines[parameter]]
         old = ""
         for i in line:
             if i == " ":
                 break
             old += i
-        hpl_input[lines[parameter] - 1] = line.replace(old, str(limits[parameter]))
+        hpl_input[lines[parameter]] = line.replace(old, str(limits[parameter]))
         with open('hpl-2.3/testing/HPL.dat', 'w') as f:
             f.writelines(hpl_input)
 
@@ -77,10 +95,10 @@ def run_hpl_benchmark():
     
     try:
         subprocess.run(["bash", shell_script], check=True)
-        logger.debug("SLURM script executed successfully.")
+        logging.debug("SLURM script executed successfully.")
     
     except subprocess.CalledProcessError as e:
-        logger.error(f"Error executing SLURM script: {e}")
+        logging.error(f"Error executing SLURM script: {e}")
 
 def retrieve_latest_gflops(): #likely more robust to search instead of hard coding the value. id imagine itll be needed for generalization anyway
     with open('hpl-2.3/testing/hpl.log','r') as f:
@@ -118,7 +136,7 @@ def objective(trial):
     
 
     if trial.should_prune():
-        logger.info("Trial pruned")
+        logging.info("Trial pruned")
         raise optuna.exceptions.TrialPruned()
 
     return gflops
@@ -127,11 +145,13 @@ if __name__ == "__main__":
 
     FILE_PATH = sys.argv[1]
 
+    load_logger()
+
     try:
         with open(FILE_PATH, "rb") as file:
-            data : tuple[dict[str : tuple[Any, Any]], dict[str : list[str, ...]], dict[str : Any]] = pickle.load(file)
+            data = pickle.load(file)
     except Exception as exception:
-        logger.critical(f"Error with loading Dougal data: {type(exception).__name__} - {exception}")
+        logging.critical(f"Error with loading Dougal data: {type(exception).__name__} - {exception}")
         raise Exception
 
     main(data)                  
