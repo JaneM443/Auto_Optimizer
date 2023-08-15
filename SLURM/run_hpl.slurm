@@ -2,6 +2,7 @@
 
 # Load the MPI module (specific to your cluster setup)
 module purge
+
 module load gcc
 module load openblas
 module load openmpi
