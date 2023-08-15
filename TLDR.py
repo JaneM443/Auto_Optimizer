@@ -41,18 +41,17 @@ def main(data) -> None:
     hyperparameter_names = [name for name in hyperparameters.keys()]
     hyperparameter_locations = find_parameter_locations(file_path = "HPL.dat", parameter_names = hyperparameter_names)
 
-    lines = {key : value for key, value in zip(hyperparameter_names, hyperparameter_locations)}
-
-
-    # Location of important hyperparameters
-    
-    #!!! best practice to zero index the lines
+        #!!! best practice to zero index the lines
     # lines = {
     # 'n': 6 -> 5,
     # 'p': 11 -> 10,
     # 'q': 12 -> 11,
     # 'nb': 8 -> 7,
     # }
+    # Same as above just more general
+    
+    # Location of important hyperparameters
+    lines = {key : value for key, value in zip(hyperparameter_names, hyperparameter_locations)}
 
     
 
@@ -108,23 +107,24 @@ def retrieve_latest_gflops(): #likely more robust to search instead of hard codi
 
         return float(gflops)
 
-def objective(trial):
-
-    # Hard coded Suggested limits
-    hyper_parameters = ['n','p','q','nb'] # this can and will be fetched from the input data from dougal
-
+def objective(trial, hyperparameters, runtimeparameters):
+    hyperparameter_names = [name for name in hyperparameters.keys()]
+    hyperparameter_ranges = [parameter_range for parameter_value in hyperparameters.values()]
+    
     # Set values within a range for each hyperparameter each trial
-    limits = {
-        'n' : trial.suggest_int('n', 0, 1000),
-    }
+    # limits = {
+    #     'n' : trial.suggest_int('n', 0, 1000),
+    #     'p' = trial.suggest_int('p', 1, 4)
+    #     'q' = trial.suggest_int('q', 1, 3)
+    #     'nb' = trial.suggest_int('nb', 1, 6)
+    # } 
+    
+    # Same done below just more general
+    limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
 
-    p = trial.suggest_int('p', 1, 4)
-    q = trial.suggest_int('q', 1, 3)
-    nb = trial.suggest_int('nb', 1, 6)
-
-    limits['nb'] = 2 ** nb
-    limits['p'] = 2 ** p
-    limits['q'] = 2 ** q
+    limits['nb'] = 2 ** 8 #512
+    limits['p'] = runtimeparameters['number_of_nodes'] * runtimeparameters['number_of_cores']
+    limits['q'] = runtimeparameters['number_of_nodes'] * runtimeparameters['number_of_cores']
 
     edit_HPL_dat(limits,hyper_parameters)
     run_hpl_benchmark()
