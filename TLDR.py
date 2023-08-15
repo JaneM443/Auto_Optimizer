@@ -4,10 +4,12 @@ import pickle
 import sys
 import os
 import logging
+import typing
+from typing import Any
 
-def main(data):
+def main(data : tuple[dict[str : tuple[Any, Any]], dict[str : list[str, ...]], dict[str : Any]]) -> None:
+    #----------------------------------------------
     AUTO_CLEAR = True
-
     logging.basicConfig(
         filename = "output.log",
         level = logging.DEBUG,
@@ -15,8 +17,17 @@ def main(data):
         format = "%(levelname)s | %(asctime)s | '%(message)s' | %(funcName)s%(args)s @ line %(lineno)d in %(filename)s from %(module)s | StackInfo : %(stack_info)s | ProcessInfo : %(processName)s(%(process)d) | ThreadInfo : %(threadName)s(%(thread)d)")
 
     logging.info("Logger Loaded")
+    #----------------------------------------------
+    
+                     # dict[param_name: tuple[param_minimum, param_maximum]]
+    hyperparameters  : dict[str       : tuple[Any          , Any          ]] = data[0]
 
-    variable_data, module_data, runtime_data = data
+                     # dict[module_type: list[module1, ...]]
+    moduledata       : dict[str        : list[str    , ...]] = data[1]
+
+                     # dict[parameter_name: parameter_value]
+    runtimeparameters: dict[str           : Any            ] = data[2]
+
     # Location of important hyperparameters
     lines = {
     'n': 6,
@@ -25,7 +36,7 @@ def main(data):
     'nb': 8,
     }
 
-    variable_data, module_data, runtime_data = data
+    hyperparameter_names = hyperparameters.keys()
 
     if not os.path.exists("hpl-2.3/"):
         logger.info("hpl-2.3/ not found -> Running 'SLURM/setup.slurm'")
@@ -82,7 +93,7 @@ def retrieve_latest_gflops(): #likely more robust to search instead of hard codi
 def objective(trial):
 
     # Hard coded Suggested limits
-    hyper_parameters = ['n','p','q','nb'] # this can and will be wetched from the input data from dougal
+    hyper_parameters = ['n','p','q','nb'] # this can and will be fetched from the input data from dougal
 
     # Set values within a range for each hyperparameter each trial
     limits = {
@@ -118,7 +129,7 @@ if __name__ == "__main__":
 
     try:
         with open(FILE_PATH, "rb") as file:
-            data = pickle.load(file)
+            data : tuple[dict[str : tuple[Any, Any]], dict[str : list[str, ...]], dict[str : Any]] = pickle.load(file)
     except Exception as exception:
         logger.critical(f"Error with loading Dougal data: {type(exception).__name__} - {exception}")
         raise Exception
