@@ -7,13 +7,6 @@ import logging
 import typing
 from typing import Any, List, Dict, Tuple
 
-def find_parameter_locations(file_path, parameter_names):
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-
-    for line in lines:
-        print(line)
-
 def load_logger():
     #----------------------------------------------
     AUTO_CLEAR = True
@@ -27,34 +20,22 @@ def load_logger():
     #----------------------------------------------
 
 def main(data) -> None:
-                     # dict[param_name: tuple[param_minimum, param_maximum]]
-    hyperparameters  : Dict[str       : Tuple[Any          , Any          ]] = data[0]
+                             # dict[param_name: tuple[param_minimum, param_maximum]]
+    hyperparameters          : Dict[str       : Tuple[Any          , Any          ]] = data[0]
 
-                     # dict[module_type: list[module1, ...]]
-    moduledata       : Dict[str        : List[str    , ...]] = data[1]
+                             # dict[module_type: list[module1, ...]]
+    moduledata               : Dict[str        : List[str    , ...]] = data[1]
 
-                     # dict[parameter_name: parameter_value]
-    runtimeparameters: Dict[str           : Any            ] = data[2]
+                             # dict[parameter_name: parameter_value]
+    runtimeparameters        : Dict[str           : Any            ] = data[2]
+                             
+                             # dict[param_name: param_line]
+    hyperparameter_locations : Dict[str       : int       ] = data[3] # Location of important hyperparameters
 
     #----------------------------------------------
 
     hyperparameter_names = [name for name in hyperparameters.keys()]
-    hyperparameter_locations = find_parameter_locations(file_path = "HPL.dat", parameter_names = hyperparameter_names)
-
-        #!!! best practice to zero index the lines
-    # lines = {
-    # 'n': 6 -> 5,
-    # 'p': 11 -> 10,
-    # 'q': 12 -> 11,
-    # 'nb': 8 -> 7,
-    # }
-    # Same as above just more general
     
-    # Location of important hyperparameters
-    lines = {key : value for key, value in zip(hyperparameter_names, hyperparameter_locations)}
-
-    
-
     if not os.path.exists("hpl-2.3/"):
         logging.info("hpl-2.3/ not found -> Running 'SLURM/setup.slurm'")
 
@@ -122,9 +103,9 @@ def objective(trial, hyperparameters, runtimeparameters):
     # Same done below just more general
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
 
-    limits['nb'] = 2 ** 8 #512
-    limits['p'] = runtimeparameters['number_of_nodes'] * runtimeparameters['number_of_cores']
-    limits['q'] = runtimeparameters['number_of_nodes'] * runtimeparameters['number_of_cores']
+    # limits['nb'] = 2 ** 8 #512
+    # limits['p'] = runtimeparameters['number_of_nodes'] * runtimeparameters['number_of_cores']
+    # limits['q'] = runtimeparameters['number_of_nodes'] * runtimeparameters['number_of_cores']
 
     edit_HPL_dat(limits,hyper_parameters)
     run_hpl_benchmark()
@@ -150,6 +131,7 @@ if __name__ == "__main__":
     try:
         with open(FILE_PATH, "rb") as file:
             data = pickle.load(file)
+            logging.info(f"Loaded Data : {data}")
     except Exception as exception:
         logging.critical(f"Error with loading Dougal data: {type(exception).__name__} - {exception}")
         raise Exception
