@@ -57,6 +57,8 @@ def main(data) -> None:
 
 def edit_HPL_dat(limits,hyper_parameters):
 
+    #! Search through File, remove hardcoded lines
+
     for parameter in hyper_parameters:
         with open('hpl-2.3/testing/HPL.dat', 'r') as f:
             hpl_input = f.readlines()
@@ -92,14 +94,7 @@ def retrieve_latest_gflops(): #likely more robust to search instead of hard codi
 def objective(trial, hyperparameters, runtimeparameters):
     hyperparameter_names = [name for name in hyperparameters.keys()]
     hyperparameter_ranges = [parameter_range for parameter_value in hyperparameters.values()]
-    
-    # Set values within a range for each hyperparameter each trial
-    # limits = {
-    #     'n' : trial.suggest_int('n', 0, 1000),
-    #     'p' = trial.suggest_int('p', 1, 4)
-    #     'q' = trial.suggest_int('q', 1, 3)
-    #     'nb' = trial.suggest_int('nb', 1, 6)
-    # } 
+
     
     # Same done below just more general
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
@@ -107,8 +102,11 @@ def objective(trial, hyperparameters, runtimeparameters):
     # limits['nb'] = 2 ** 8 #512
     # limits['p'] = runtimeparameters['number_of_nodes'] * runtimeparameters['number_of_cores']
     # limits['q'] = runtimeparameters['number_of_nodes'] * runtimeparameters['number_of_cores']
+    
+    #! Do we need to bound the values of p and q to prevent them both being chosen as maximum?
 
-    edit_HPL_dat(limits,hyper_parameters)
+    edit_HPL_dat(limits,hyperparameters)
+
     run_hpl_benchmark()
 
     try:
