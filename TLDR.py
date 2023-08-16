@@ -49,7 +49,7 @@ def main(data) -> None:
             logging.error(f"Error executing SLURM script: {e}")
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(objective, n_trials=10)
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=10)
 
     best_params = study.best_params
     print('Best Parameters:')#Leaving in for the moment. must be moved to an output script :)
