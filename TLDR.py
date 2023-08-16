@@ -14,7 +14,8 @@ def load_logger():
         filename = "output.log",
         level = logging.DEBUG,
         filemode = 'a' if AUTO_CLEAR == False else 'w',
-        format = "%(levelname)s | %(asctime)s | '%(message)s' | %(funcName)s%(args)s @ line %(lineno)d in %(filename)s from %(module)s | StackInfo : %(stack_info)s | ProcessInfo : %(processName)s(%(process)d) | ThreadInfo : %(threadName)s(%(thread)d)")
+        format = "%(levelname)s | %(asctime)s | '%(message)s' | %(funcName)s%(args)s @ line %(lineno)d in %(filename)s from %(module)s | StackInfo : %(stack_info)s | ProcessInfo : %(processName)s(%(process)d) | ThreadInfo : %(threadName)s(%(thread)d)"
+        )
 
     logging.info("Logger Loaded")
     #----------------------------------------------
