@@ -31,9 +31,6 @@ def main(data) -> None:
 
                              # dict[parameter_name: parameter_value]
     runtimeparameters        : Dict[str           : Any            ] = data[2]
-                             
-                             # dict[param_name: param_line]
-    hyperparameter_locations : Dict[str       : int       ] = data[3] # Location of important hyperparameters
 
     #----------------------------------------------
 
