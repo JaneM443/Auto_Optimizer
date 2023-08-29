@@ -21,7 +21,7 @@ def load_logger():
 
     logging.info("Logger Loaded")
 
-def generate_tldr_slurm_script_content():
+def generate_tldr_slurm_script_content(runtimeparameters):
     content = f"""\
     #!/bin/bash
 
@@ -38,7 +38,7 @@ def generate_tldr_slurm_script_content():
 
     return content
 
-def generate_run_hpl_slurm_script_content():
+def generate_run_hpl_slurm_script_content(runtimeparameters, moduledata):
     content = f"""\
     #!/bin/bash
 
@@ -63,7 +63,7 @@ def generate_run_hpl_slurm_script_content():
 
     return content
 
-def generate_setup_hpl_slurm_script_content():
+def generate_setup_hpl_slurm_script_content(runtimeparameters, moduledata):
     content = f"""\
     #!/bin/bash
 
@@ -118,9 +118,9 @@ def main(data) -> None:
     setup_hpl_shell_script = "SLURM/setup_hpl.slurm" # I may go through and change this name to prepare for new benchmarks, setup --> setup_hpl
 
     #? Need to decide appropriate timings for these scripts -- DONE?
-    tldr_slurm_script_content    = generate_tldr_slurm_script_content()
-    run_hpl_slurm_script_content = generate_run_hpl_slurm_script_content()
-    setup_hpl_slurm_script_content = generate_setup_hpl_slurm_script_content()
+    tldr_slurm_script_content    = generate_tldr_slurm_script_content(runtimeparameters)
+    run_hpl_slurm_script_content = generate_run_hpl_slurm_script_content(runtimeparameters, moduledata)
+    setup_hpl_slurm_script_content = generate_setup_hpl_slurm_script_content(runtimeparameters, moduledata)
 
     # Write the generated content to a SLURM script file
     with open(tldr_shell_script, "w") as f:
