@@ -47,10 +47,10 @@ def main(data) -> None:
     tldr_slurm_script_content = f"""\
     #!/bin/bash
 
-    #SBATCH --nodes={runtimeparameters['number_of_nodes']}
-    #SBATCH --ntasks-per-node={runtimeparameters['number_of_cores']}
-    #SBATCH --mem={runtimeparameters['memory_per_node']}
-    #SBATCH --time={runtimeparameters['max_runtime_hours']}
+    #SBATCH --nodes={runtimeparameters['Number Of Nodes']}
+    #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input']}
+    #SBATCH --mem={runtimeparameters['Memory Per Node GB']}
+    #SBATCH --time={runtimeparameters['Max Runtime In Hours']}
     #SBATCH --output=output.log
     #SBATCH --error=error.log
 
@@ -63,17 +63,17 @@ def main(data) -> None:
     run_hpl_slurm_script_content = f"""\
     #!/bin/bash
 
-    #SBATCH --nodes={runtimeparameters['number_of_nodes']}
-    #SBATCH --ntasks-per-node={runtimeparameters['number_of_cores']}
-    #SBATCH --mem={runtimeparameters['memory_per_node']}
-    #SBATCH --time={00:00:00} 
+    #SBATCH --nodes={runtimeparameters['Number Of Nodes']}
+    #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input']}
+    #SBATCH --mem={runtimeparameters['Memory Per Node GB']}
+    #SBATCH --time={runtimeparameters['Max Runtime In Hours']}
     #SBATCH --output=output.log
     #SBATCH --error=error.log
 
     module purge
-    module load {moduledata['compiler']}
-    module load {moduledata['blas_module']}
-    module load {moduledata['mpi_module']}
+    module load {moduledata['MPI Modules']}
+    module load {moduledata['BLAS Modules']}
+    module load {moduledata['Compilers']}
 
     cd hpl-2.3
     cd testing
@@ -84,10 +84,10 @@ def main(data) -> None:
     setup_hpl_slurm_script_content = f"""\
     #!/bin/bash
 
-    #SBATCH --nodes={runtimeparameters['number_of_nodes']}
-    #SBATCH --ntasks-per-node={runtimeparameters['number_of_cores']}
-    #SBATCH --mem={runtimeparameters['memory_per_node']}
-    #SBATCH --time={00:00:00}
+    #SBATCH --nodes={runtimeparameters['Number Of Nodes']}
+    #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input']}
+    #SBATCH --mem={runtimeparameters['Memory Per Node GB']}
+    #SBATCH --time={runtimeparameters['Max Runtime In Hours']}
     #SBATCH --output=output.log
     #SBATCH --error=error.log
 
@@ -95,9 +95,9 @@ def main(data) -> None:
     tar xzpf hpl-2.3.tar.gz  
 
     module purge
-    module load {moduledata['compiler']}
-    module load {moduledata['blas_module']}
-    module load {moduledata['mpi_module']}
+    module load {moduledata['MPI Modules']}
+    module load {moduledata['BLAS Modules']}
+    module load {moduledata['Compilers']}
 
     cd hpl-2.3 
     ./configure
