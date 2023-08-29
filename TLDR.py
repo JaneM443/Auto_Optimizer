@@ -29,9 +29,6 @@ def main(data) -> None:
 
                              # dict[parameter_name: parameter_value]
     runtimeparameters        : Dict[str           : Any            ] = data[2]
-                             
-                             # dict[param_name: param_line]
-    hyperparameter_locations : Dict[str       : int       ] = data[3] # Location of important hyperparameters
 
     #----------------------------------------------
 
@@ -58,6 +55,7 @@ def main(data) -> None:
 def edit_HPL_dat(limits,hyper_parameters):
 
     #! Search through File, remove hardcoded lines
+    #* search for line including varname and srt
 
     for parameter in hyper_parameters:
         with open('hpl-2.3/testing/HPL.dat', 'r') as f:
