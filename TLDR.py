@@ -24,9 +24,6 @@ def main(data) -> None:
                              # dict[param_name: tuple[param_minimum, param_maximum]]
     hyperparameters          : Dict[str       : Tuple[Any          , Any          ]] = data[0]
 
-                             # dict[module_type: list[module1, ...]]
-    moduledata               : Dict[str        : List[str    , ...]] = data[1]
-
                              # dict[parameter_name: parameter_value]
     runtimeparameters        : Dict[str           : Any            ] = data[2]
 
@@ -52,24 +49,19 @@ def main(data) -> None:
     print('Best Parameters:')#Leaving in for the moment. must be moved to an output script :)
     print(best_params)
 
-def edit_HPL_dat(limits,hyper_parameters):
+def edit_HPL_dat(limits):
 
     #! Search through File, remove hardcoded lines - JONNY ON IT
     #* search for line including varname and srt
 
-    for parameter in hyper_parameters:
-        with open('hpl-2.3/testing/HPL.dat', 'r') as f:
-            hpl_input = f.readlines()
+    with open('hpl-2.3/testing/HPL.dat.scaffold', 'r') as file:
+        hpl_file_data = file.read()
 
-        line = hpl_input[lines[parameter]]
-        old = ""
-        for i in line:
-            if i == " ":
-                break
-            old += i
-        hpl_input[lines[parameter]] = line.replace(old, str(limits[parameter]))
-        with open('hpl-2.3/testing/HPL.dat', 'w') as f:
-            f.writelines(hpl_input)
+    for param_name in limits.keys():
+        hpl_file_data = hpl_file_data.replace(f"{{{param_name}}}", f"{limits[param_name]}")
+
+    with open("hpl-2.3/testing/HPL.dat", 'w') as file:
+        file.write(hpl_file_data)
 
 def run_hpl_benchmark():
     shell_script = "SLURM/run_hpl.slurm"
@@ -84,27 +76,27 @@ def run_hpl_benchmark():
 def retrieve_latest_gflops(): #likely more robust to search instead of hard coding the value. id imagine itll be needed for generalization anyway
     with open('hpl-2.3/testing/hpl.log','r') as f:
 
-        summary_line = f.readlines()[38]
-        gflops = summary_line.split()[-1]
+        summary_lines = f.readlines()
+        summary_line = [line for line in summary_lines if "gflops" in line]
+        summary_line = summary_line.split()
+        gflops = summary_line[-1]
+
+        summary_line.replace("\n", "")
+        entrys = summary_line.split(" ")
+        entrys = [entry for entry in entrys if entry != " "]
+                
 
         return float(gflops)
 
 def objective(trial, hyperparameters, runtimeparameters):
     hyperparameter_names = [name for name in hyperparameters.keys()]
-    hyperparameter_ranges = [parameter_range for parameter_value in hyperparameters.values()]
-
     
-    # Same done below just more general
+    # Choosing hyperparameter values
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
-
-    # limits['nb'] = 2 ** 8 #512
-    # limits['p'] = runtimeparameters['number_of_nodes'] * runtimeparameters['number_of_cores']
-    # limits['q'] = runtimeparameters['number_of_nodes'] * runtimeparameters['number_of_cores']
     
-    #! Do we need to bound the values of p and q to prevent them both being chosen as maximum?
+    #! Do we need to bound the values of p and q to prevent them both being chosen as maximum? <-- Use runtimeparameters
 
-    edit_HPL_dat(limits,hyperparameters)
-
+    edit_HPL_dat(limits)
     run_hpl_benchmark()
 
     try:
