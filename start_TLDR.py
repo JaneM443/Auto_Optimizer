@@ -113,9 +113,9 @@ def main(data) -> None:
     # From what I understand from Arijus, all SLURM files are generated here with the values from dougal
     # The only thing we would then need is the hyperparameter information
 
-    tldr_shell_script = "SLURM/tldr.slurm"
-    run_hpl_shell_script = "SLURM/run_hpl.slurm"
-    setup_hpl_shell_script = "SLURM/setup_hpl.slurm" # I may go through and change this name to prepare for new benchmarks, setup --> setup_hpl
+    tldr_slurm_script = "SLURM/tldr.slurm"
+    run_hpl_slurm_script = "SLURM/run_hpl.slurm"
+    setup_hpl_slurm_script = "SLURM/setup_hpl.slurm" # I may go through and change this name to prepare for new benchmarks, setup --> setup_hpl
 
     #? Need to decide appropriate timings for these scripts -- DONE?
     tldr_slurm_script_content    = generate_tldr_slurm_script_content(runtimeparameters)
@@ -123,11 +123,15 @@ def main(data) -> None:
     setup_hpl_slurm_script_content = generate_setup_hpl_slurm_script_content(runtimeparameters, moduledata)
 
     # Write the generated content to a SLURM script file
-    with open(tldr_shell_script, "w") as f:
+    with open(tldr_slurm_script, "w") as f:
         f.write(tldr_slurm_script_content)
+    with open(run_hpl_slurm_script, "w") as f:
+        f.write(run_hpl_slurm_script_content)
+    with open(setup_hpl_slurm_script, "w") as f:
+        f.write(setup_hpl_slurm_script_content)
 
     try:
-        subprocess.run(["sbatch", tldr_shell_script], check=True)
+        subprocess.run(["sbatch", tldr_slurm_script], check=True)
         logging.debug("Job submitted successfully.")
         
     except subprocess.CalledProcessError as e:
