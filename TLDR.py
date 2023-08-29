@@ -43,7 +43,7 @@ def main(data) -> None:
             logging.error(f"Error executing SLURM script: {e}")
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=10)
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=2)
 
     best_params = study.best_params
     print('Best Parameters:')#Leaving in for the moment. must be moved to an output script :)
@@ -54,7 +54,7 @@ def edit_HPL_dat(limits):
     #! Search through File, remove hardcoded lines - JONNY ON IT
     #* search for line including varname and srt
 
-    with open('hpl-2.3/testing/HPL.dat.scaffold', 'r') as file:
+    with open('Extra/HPL.dat.scaffold', 'r') as file:
         hpl_file_data = file.read()
 
     for param_name in limits.keys():
@@ -76,17 +76,10 @@ def run_hpl_benchmark():
 def retrieve_latest_gflops(): #likely more robust to search instead of hard coding the value. id imagine itll be needed for generalization anyway
     with open('hpl-2.3/testing/hpl.log','r') as f:
 
-        summary_lines = f.readlines()
-        summary_line = [line for line in summary_lines if "gflops" in line]
-        summary_line = summary_line.split()
-        gflops = summary_line[-1]
-
-        summary_line.replace("\n", "")
-        entrys = summary_line.split(" ")
-        entrys = [entry for entry in entrys if entry != " "]
-                
-
-        return float(gflops)
+        summary_line = f.readlines()[38]
+    
+    gflops = summary_line.split()[-1]
+    return float(gflops)
 
 def objective(trial, hyperparameters, runtimeparameters):
     hyperparameter_names = [name for name in hyperparameters.keys()]
