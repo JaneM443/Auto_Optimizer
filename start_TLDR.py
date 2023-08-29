@@ -21,6 +21,79 @@ def load_logger():
 
     logging.info("Logger Loaded")
 
+def generate_tldr_slurm_script_content():
+    content = f"""\
+    #!/bin/bash
+
+    #SBATCH --nodes={runtimeparameters['Number Of Nodes']}
+    #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input']}
+    #SBATCH --mem={runtimeparameters['Memory Per Node GB']}
+    #SBATCH --time={runtimeparameters['Max Runtime In Hours']}
+    #SBATCH --output=output.log
+    #SBATCH --error=error.log
+
+    python3 TLDR.py hyperparameters
+
+    """
+
+    return content
+
+def generate_run_hpl_slurm_script_content():
+    content = f"""\
+    #!/bin/bash
+
+    #SBATCH --nodes={runtimeparameters['Number Of Nodes']}
+    #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input']}
+    #SBATCH --mem={runtimeparameters['Memory Per Node GB']}
+    #SBATCH --time={runtimeparameters['Max Runtime In Hours']}
+    #SBATCH --output=output.log
+    #SBATCH --error=error.log
+
+    module purge
+    module load {moduledata['MPI Modules']}
+    module load {moduledata['BLAS Modules']}
+    module load {moduledata['Compilers']}
+
+    cd hpl-2.3
+    cd testing
+
+    mpirun -np $SLURM_NTASKS ./xhpl > hpl.log 
+
+    """
+
+    return content
+
+def generate_setup_hpl_slurm_script_content():
+    content = f"""\
+    #!/bin/bash
+
+    #SBATCH --nodes={runtimeparameters['Number Of Nodes']}
+    #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input']}
+    #SBATCH --mem={runtimeparameters['Memory Per Node GB']}
+    #SBATCH --time=00:15:00
+    #SBATCH --output=output.log
+    #SBATCH --error=error.log
+
+    wget https://www.netlib.org/benchmark/hpl/hpl-2.3.tar.gz  
+    tar xzpf hpl-2.3.tar.gz  
+
+    module purge
+    module load {moduledata['MPI Modules']}
+    module load {moduledata['BLAS Modules']}
+    module load {moduledata['Compilers']}
+
+    cd hpl-2.3 
+    ./configure
+    make clean
+    make
+
+    cd testing        
+    cp ptest/HPL.dat .  # Change to copy in HPL.dat from this folder
+
+    """
+
+    return content
+
 def main(data) -> None:
 
                              # dict[param_name: tuple[param_minimum, param_maximum]]
@@ -44,70 +117,10 @@ def main(data) -> None:
     run_hpl_shell_script = "SLURM/run_hpl.slurm"
     setup_hpl_shell_script = "SLURM/setup_hpl.slurm" # I may go through and change this name to prepare for new benchmarks, setup --> setup_hpl
 
-    tldr_slurm_script_content = f"""\
-    #!/bin/bash
-
-    #SBATCH --nodes={runtimeparameters['Number Of Nodes']}
-    #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input']}
-    #SBATCH --mem={runtimeparameters['Memory Per Node GB']}
-    #SBATCH --time={runtimeparameters['Max Runtime In Hours']}
-    #SBATCH --output=output.log
-    #SBATCH --error=error.log
-
-    python3 TLDR.py hyperparameters
-
-    """
-
-    # Need to decide appropriate timings for these scripts
-
-    run_hpl_slurm_script_content = f"""\
-    #!/bin/bash
-
-    #SBATCH --nodes={runtimeparameters['Number Of Nodes']}
-    #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input']}
-    #SBATCH --mem={runtimeparameters['Memory Per Node GB']}
-    #SBATCH --time={runtimeparameters['Max Runtime In Hours']}
-    #SBATCH --output=output.log
-    #SBATCH --error=error.log
-
-    module purge
-    module load {moduledata['MPI Modules']}
-    module load {moduledata['BLAS Modules']}
-    module load {moduledata['Compilers']}
-
-    cd hpl-2.3
-    cd testing
-
-    mpirun -np $SLURM_NTASKS ./xhpl > hpl.log 
-
-    """
-    setup_hpl_slurm_script_content = f"""\
-    #!/bin/bash
-
-    #SBATCH --nodes={runtimeparameters['Number Of Nodes']}
-    #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input']}
-    #SBATCH --mem={runtimeparameters['Memory Per Node GB']}
-    #SBATCH --time={runtimeparameters['Max Runtime In Hours']}
-    #SBATCH --output=output.log
-    #SBATCH --error=error.log
-
-    wget https://www.netlib.org/benchmark/hpl/hpl-2.3.tar.gz  
-    tar xzpf hpl-2.3.tar.gz  
-
-    module purge
-    module load {moduledata['MPI Modules']}
-    module load {moduledata['BLAS Modules']}
-    module load {moduledata['Compilers']}
-
-    cd hpl-2.3 
-    ./configure
-    make clean
-    make
-
-    cd testing        
-    cp ptest/HPL.dat .  # Change to copy in HPL.dat from this folder
-
-    """
+    #? Need to decide appropriate timings for these scripts -- DONE?
+    tldr_slurm_script_content    = generate_tldr_slurm_script_content()
+    run_hpl_slurm_script_content = generate_run_hpl_slurm_script_content()
+    setup_hpl_slurm_script_content = generate_setup_hpl_slurm_script_content()
 
     # Write the generated content to a SLURM script file
     with open(tldr_shell_script, "w") as f:
