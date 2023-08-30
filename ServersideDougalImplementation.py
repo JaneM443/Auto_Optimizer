@@ -9,4 +9,4 @@ if USE_LOCAL_DATA == True:
     with open("data.input", "wb") as data_file:
         pickle.dump(data, data_file, protocol = 4)
 
-os.system("python3 start_TLDR.py data.input")
+os.system("python3 TLDR.py data.input")

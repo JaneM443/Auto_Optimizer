@@ -85,16 +85,18 @@ def retrieve_latest_gflops():
 
     if(len(Gflops) != 1):
         logging.critical(f"{len(Gflops)} is an invalid number of lines returned from data search. Expecting 1")
+        raise Exception(f"{len(Gflops)} is an invalid number of lines returned from data search. Expecting 1")
 
     return float(Gflops[0])
-    
+
 def objective(trial, hyperparameters, runtimeparameters):
     hyperparameter_names = [name for name in hyperparameters.keys()]
     
     # Choosing hyperparameter values
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
     
-    #! Do we need to bound the values of p and q to prevent them both being chosen as maximum? <-- Use runtimeparameters
+    #? Do we need to bound the values of p and q to prevent them both being chosen as maximum? <-- Use runtimeparameters
+    #* Ummmm yes, however for now we will cap the ranges to make sure they wont exceed this. once we have program woring we will look at optuna to see if this is possible :)
 
     edit_HPL_dat(limits)
     run_hpl_benchmark()
