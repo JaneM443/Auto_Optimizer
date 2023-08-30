@@ -73,14 +73,21 @@ def run_hpl_benchmark():
     except subprocess.CalledProcessError as e:
         logging.error(f"Error executing SLURM script: {e}")
 
-def retrieve_latest_gflops(): #likely more robust to search instead of hard coding the value. id imagine itll be needed for generalization anyway
-    with open('hpl-2.3/testing/hpl.log','r') as f:
+def retrieve_latest_gflops():
+    with open('hpl.log','r') as file:
+        hpl_log_lines = file.readlines()
 
-        summary_line = f.readlines()[38]
+    data_indicies = [index + 2 for (index, line) in enumerate(hpl_log_lines) if "Gflops" in line]
+    data_indicies = data_indicies[1:]
+    data_lines = [line.strip('\n').split(' ') for (index, line) in enumerate(hpl_log_lines) if index in data_indicies]
+    data_lines = [[data for data in line if data != ''] for line in data_lines]
+    Gflops = [line[-1] for line in data_lines]
+
+    if(len(Gflops) != 1):
+        logging.critical(f"{len(Gflops)} is an invalid number of lines returned from data search. Expecting 1")
+
+    return float(Gflops[0])
     
-    gflops = summary_line.split()[-1]
-    return float(gflops)
-
 def objective(trial, hyperparameters, runtimeparameters):
     hyperparameter_names = [name for name in hyperparameters.keys()]
     
