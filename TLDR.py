@@ -6,6 +6,7 @@ import os
 import logging
 import typing
 from typing import Any, List, Dict, Tuple
+import math
 
 def load_logger():
     #----------------------------------------------
@@ -43,17 +44,13 @@ def main(data) -> None:
             logging.error(f"Error executing SLURM script: {e}")
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=2)
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=100)
 
     best_params = study.best_params
     print('Best Parameters:')#Leaving in for the moment. must be moved to an output script :)
     print(best_params)
 
 def edit_HPL_dat(limits):
-
-    #! Search through File, remove hardcoded lines - JONNY ON IT
-    #* search for line including varname and srt
-
     with open('Extra/HPL.dat.scaffold', 'r') as file:
         hpl_file_data = file.read()
 
@@ -72,9 +69,10 @@ def run_hpl_benchmark():
     
     except subprocess.CalledProcessError as e:
         logging.error(f"Error executing SLURM script: {e}")
+        raise e
 
 def retrieve_latest_gflops():
-    with open('hpl.log','r') as file:
+    with open('hpl-2.3/testing/hpl.log','r') as file:
         hpl_log_lines = file.readlines()
 
     data_indicies = [index + 2 for (index, line) in enumerate(hpl_log_lines) if "Gflops" in line]
@@ -94,6 +92,7 @@ def objective(trial, hyperparameters, runtimeparameters):
     
     # Choosing hyperparameter values
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
+    limits["Qs"] = math.floor((runtimeparameters["Number Of Nodes"][0] * runtimeparameters["Cores Per Node Input"][0]) / limits["Ps"])
     
     #? Do we need to bound the values of p and q to prevent them both being chosen as maximum? <-- Use runtimeparameters
     #* Ummmm yes, however for now we will cap the ranges to make sure they wont exceed this. once we have program woring we will look at optuna to see if this is possible :)
@@ -101,11 +100,7 @@ def objective(trial, hyperparameters, runtimeparameters):
     edit_HPL_dat(limits)
     run_hpl_benchmark()
 
-    try:
-        gflops= retrieve_latest_gflops()
-    except:
-        return 0
-    
+    gflops = retrieve_latest_gflops()
 
     if trial.should_prune():
         logging.info("Trial pruned")
