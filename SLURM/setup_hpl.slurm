@@ -2,7 +2,7 @@
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --mem=128G
+#SBATCH --mem=256G
 #SBATCH --time=00:15:00
 #SBATCH --output=output.log
 #SBATCH --error=error.log

@@ -46,11 +46,11 @@ def main(data) -> None:
 
     best_params = study.best_params
     best_value = study.best_value
-    best_study = study.best_study
+    best_trial = study.best_trial
 
     logging.info("Best Parameters: "+str(best_params))
     logging.info("Best Value: "+str(best_value))
-    logging.info("Best Study: "+str(best_study))
+    logging.info("Best Study: "+str(best_trial))
 
 def edit_HPL_dat(limits):
     with open('Extra/HPL.dat.scaffold', 'r') as file:
@@ -95,7 +95,9 @@ def objective(trial, hyperparameters, runtimeparameters):
     # Choosing hyperparameter values
     #! We may want to potentially rename this variable for clarity
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
-    limits["Qs"] = runtimeparameters["Number Of Nodes"][0] * runtimeparameters["Cores Per Node Input"][0] // limits["Ps"]
+    val = runtimeparameters["Number Of Nodes"][0] * runtimeparameters["Cores Per Node Input"][0] // limits["Ps"]
+    trial.set_user_attr("Qs", val)
+    #limits["Qs"] = trial.suggest_int("Qs", val, val) 
     logging.debug("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
     logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
     logging.debug("P: "+str(limits["Ps"]))

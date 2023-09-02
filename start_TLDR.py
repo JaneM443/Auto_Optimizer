@@ -31,7 +31,7 @@ def generate_tldr_slurm_script_content(runtimeparameters):
 #SBATCH --time={runtimeparameters['Max Runtime In Hours'][0]}
 #SBATCH --output=output.log
 #SBATCH --error=error.log
-#SBATCH --partition multi
+#SBATCH --partition test
 
 python3 TLDR.py data.input
 
@@ -49,8 +49,7 @@ def generate_run_hpl_slurm_script_content(runtimeparameters, moduledata):
 #SBATCH --time={runtimeparameters['Max Runtime In Hours'][0]}
 #SBATCH --output=output.log
 #SBATCH --error=error.log
-#SBATCH --partition multi
-
+#SBATCH --partition test
 module purge
 module load {moduledata['Compilers'][0]}
 module load {moduledata['BLAS Modules'][0]}
