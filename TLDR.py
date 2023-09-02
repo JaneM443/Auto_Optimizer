@@ -42,11 +42,15 @@ def main(data) -> None:
             logging.error(f"Error executing SLURM script: {e}")
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=2)
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=20)
 
     best_params = study.best_params
+    best_value = study.best_value
+    best_study = study.best_study
 
     logging.info("Best Parameters: "+str(best_params))
+    logging.info("Best Value: "+str(best_value))
+    logging.info("Best Study: "+str(best_study))
 
 def edit_HPL_dat(limits):
     with open('Extra/HPL.dat.scaffold', 'r') as file:
@@ -67,7 +71,7 @@ def run_hpl_benchmark():
     
     except subprocess.CalledProcessError as e:
         logging.error(f"Error executing SLURM script: {e}")
-        raise e
+        raise e(f"Error executing SLURM script: {e}")
 
 def retrieve_latest_gflops():
     with open('hpl-2.3/testing/hpl.log','r') as file:
@@ -92,15 +96,12 @@ def objective(trial, hyperparameters, runtimeparameters):
     #! We may want to potentially rename this variable for clarity
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
     limits["Qs"] = runtimeparameters["Number Of Nodes"][0] * runtimeparameters["Cores Per Node Input"][0] // limits["Ps"]
-    logging.info("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
-    logging.info("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
-    logging.info("P: "+str(limits["Ps"]))
-    logging.info("Q: "+str(limits["Qs"]))
-    logging.info(str(limits))
+    logging.debug("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
+    logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
+    logging.debug("P: "+str(limits["Ps"]))
+    logging.debug("Q: "+str(limits["Qs"]))
+    logging.debug(f"Limits : {str(limits)}")
     
-    #? Do we need to bound the values of p and q to prevent them both being chosen as maximum? <-- Use runtimeparameters
-    #* Ummmm yes, however for now we will cap the ranges to make sure they wont exceed this. once we have program woring we will look at optuna to see if this is possible :)
-
     edit_HPL_dat(limits)
     run_hpl_benchmark()
 

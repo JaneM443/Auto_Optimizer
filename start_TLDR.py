@@ -27,10 +27,11 @@ def generate_tldr_slurm_script_content(runtimeparameters):
 
 #SBATCH --nodes={runtimeparameters['Number Of Nodes'][0]}
 #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input'][0]}
-#SBATCH --mem={runtimeparameters['Memory Per Node GB'][0]}
+#SBATCH --mem={runtimeparameters['Memory Per Node GB'][0]}G
 #SBATCH --time={runtimeparameters['Max Runtime In Hours'][0]}
 #SBATCH --output=output.log
 #SBATCH --error=error.log
+#SBATCH --partition multi
 
 python3 TLDR.py data.input
 
@@ -44,10 +45,11 @@ def generate_run_hpl_slurm_script_content(runtimeparameters, moduledata):
 
 #SBATCH --nodes={runtimeparameters['Number Of Nodes'][0]}
 #SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input'][0]}
-#SBATCH --mem={runtimeparameters['Memory Per Node GB'][0]}
+#SBATCH --mem={runtimeparameters['Memory Per Node GB'][0]}G
 #SBATCH --time={runtimeparameters['Max Runtime In Hours'][0]}
 #SBATCH --output=output.log
 #SBATCH --error=error.log
+#SBATCH --partition multi
 
 module purge
 module load {moduledata['Compilers'][0]}
@@ -67,12 +69,13 @@ def generate_setup_hpl_slurm_script_content(runtimeparameters, moduledata):
     content = f"""\
 #!/bin/bash
 
-#SBATCH --nodes={runtimeparameters['Number Of Nodes'][0]}
-#SBATCH --ntasks-per-node={runtimeparameters['Cores Per Node Input'][0]}
-#SBATCH --mem={runtimeparameters['Memory Per Node GB'][0]}
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem={runtimeparameters['Memory Per Node GB'][0]}G
 #SBATCH --time=00:15:00
 #SBATCH --output=output.log
 #SBATCH --error=error.log
+#SBATCH --partition test
 
 wget https://www.netlib.org/benchmark/hpl/hpl-2.3.tar.gz  
 tar xzpf hpl-2.3.tar.gz  
@@ -128,6 +131,7 @@ def main(data) -> None:
     except subprocess.CalledProcessError as e:
         pass
         logging.error(f"Error submitting job: {e}")
+        raise e(f"Error submitting job: {e}")
 
 if __name__ == "__main__":
 

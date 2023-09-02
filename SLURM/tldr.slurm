@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
@@ -8,14 +8,6 @@
 #SBATCH --error=error.log
 #SBATCH --partition multi
 
-module purge
-module load gcc
-module load openblas
-module load openmpi
-
-cd hpl-2.3
-cd testing
-
-mpirun -np 16 ./xhpl > hpl.log 
+python3 TLDR.py data.input
 
     

@@ -1,0 +1,21 @@
+[32m[I 2023-09-02 10:47:14,724][0m A new study created in memory with name: no-name-f08c937f-53db-4b76-988f-c8f2b8bc93b0[0m
+[32m[I 2023-09-02 10:47:22,143][0m Trial 0 finished with value: 187.09 and parameters: {'Ns': 4399, 'NBs': 82, 'Ps': 3, 'Qs': 1}. Best is trial 0 with value: 187.09.[0m
+[32m[I 2023-09-02 10:47:30,254][0m Trial 1 finished with value: 67.175 and parameters: {'Ns': 3558, 'NBs': 117, 'Ps': 2, 'Qs': 7}. Best is trial 0 with value: 187.09.[0m
+[32m[I 2023-09-02 10:47:38,680][0m Trial 2 finished with value: 308.28 and parameters: {'Ns': 9840, 'NBs': 158, 'Ps': 3, 'Qs': 4}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:47:46,671][0m Trial 3 finished with value: 172.79 and parameters: {'Ns': 3468, 'NBs': 104, 'Ps': 5, 'Qs': 8}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:47:53,611][0m Trial 4 finished with value: 192.68 and parameters: {'Ns': 4301, 'NBs': 168, 'Ps': 5, 'Qs': 1}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:47:58,546][0m Trial 5 finished with value: 228.28 and parameters: {'Ns': 5657, 'NBs': 165, 'Ps': 4, 'Qs': 8}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:48:03,896][0m Trial 6 finished with value: 197.54 and parameters: {'Ns': 5741, 'NBs': 194, 'Ps': 6, 'Qs': 1}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:48:10,592][0m Trial 7 finished with value: 177.98 and parameters: {'Ns': 3718, 'NBs': 68, 'Ps': 5, 'Qs': 4}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:48:19,029][0m Trial 8 finished with value: 217.2 and parameters: {'Ns': 6280, 'NBs': 192, 'Ps': 8, 'Qs': 8}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:48:25,756][0m Trial 9 finished with value: 279.38 and parameters: {'Ns': 8612, 'NBs': 145, 'Ps': 1, 'Qs': 3}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:48:33,867][0m Trial 10 finished with value: 269.78 and parameters: {'Ns': 9721, 'NBs': 252, 'Ps': 7, 'Qs': 6}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:48:42,230][0m Trial 11 finished with value: 278.94 and parameters: {'Ns': 9561, 'NBs': 133, 'Ps': 1, 'Qs': 4}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:48:48,655][0m Trial 12 finished with value: 267.68 and parameters: {'Ns': 7722, 'NBs': 150, 'Ps': 1, 'Qs': 3}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:48:54,609][0m Trial 13 finished with value: 283.02 and parameters: {'Ns': 8409, 'NBs': 223, 'Ps': 3, 'Qs': 3}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:49:00,659][0m Trial 14 finished with value: 31.15 and parameters: {'Ns': 1070, 'NBs': 252, 'Ps': 3, 'Qs': 5}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:49:06,441][0m Trial 15 finished with value: 255.67 and parameters: {'Ns': 7491, 'NBs': 213, 'Ps': 3, 'Qs': 3}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:49:14,011][0m Trial 16 finished with value: 290.7 and parameters: {'Ns': 8454, 'NBs': 226, 'Ps': 4, 'Qs': 2}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:49:20,937][0m Trial 17 finished with value: 269.71 and parameters: {'Ns': 7118, 'NBs': 188, 'Ps': 4, 'Qs': 2}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:49:27,547][0m Trial 18 finished with value: 247.18 and parameters: {'Ns': 8944, 'NBs': 234, 'Ps': 6, 'Qs': 5}. Best is trial 2 with value: 308.28.[0m
+[32m[I 2023-09-02 10:49:34,922][0m Trial 19 finished with value: 301.1 and parameters: {'Ns': 9663, 'NBs': 175, 'Ps': 2, 'Qs': 2}. Best is trial 2 with value: 308.28.[0m
