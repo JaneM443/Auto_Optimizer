@@ -29,13 +29,11 @@ def main(data) -> None:
     runtimeparameters        : Dict[str           : Any            ] = data[2]
 
     #----------------------------------------------
-
-    hyperparameter_names = [name for name in hyperparameters.keys()]
     
     if not os.path.exists("hpl-2.3/"):
-        logging.info("hpl-2.3/ not found -> Running 'SLURM/setup.slurm'")
+        logging.info("hpl-2.3/ not found -> Running 'SLURM/setup_hpl.slurm'")
 
-        slurm_script_path = 'SLURM/setup.slurm'
+        slurm_script_path = 'SLURM/setup_hpl.slurm'
         #Run the SLURM script directly
         try:
             subprocess.run(['bash', slurm_script_path], check=True)
@@ -44,11 +42,11 @@ def main(data) -> None:
             logging.error(f"Error executing SLURM script: {e}")
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=100)
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=2)
 
     best_params = study.best_params
-    print('Best Parameters:')#Leaving in for the moment. must be moved to an output script :)
-    print(best_params)
+
+    logging.info("Best Parameters: "+str(best_params))
 
 def edit_HPL_dat(limits):
     with open('Extra/HPL.dat.scaffold', 'r') as file:
@@ -91,8 +89,14 @@ def objective(trial, hyperparameters, runtimeparameters):
     hyperparameter_names = [name for name in hyperparameters.keys()]
     
     # Choosing hyperparameter values
+    #! We may want to potentially rename this variable for clarity
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
-    limits["Qs"] = math.floor((runtimeparameters["Number Of Nodes"][0] * runtimeparameters["Cores Per Node Input"][0]) / limits["Ps"])
+    limits["Qs"] = runtimeparameters["Number Of Nodes"][0] * runtimeparameters["Cores Per Node Input"][0] // limits["Ps"]
+    logging.info("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
+    logging.info("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
+    logging.info("P: "+str(limits["Ps"]))
+    logging.info("Q: "+str(limits["Qs"]))
+    logging.info(str(limits))
     
     #? Do we need to bound the values of p and q to prevent them both being chosen as maximum? <-- Use runtimeparameters
     #* Ummmm yes, however for now we will cap the ranges to make sure they wont exceed this. once we have program woring we will look at optuna to see if this is possible :)
