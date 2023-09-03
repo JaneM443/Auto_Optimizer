@@ -96,11 +96,10 @@ def objective(trial, hyperparameters, runtimeparameters):
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
     val = runtimeparameters["Number Of Nodes"][0] * runtimeparameters["Cores Per Node Input"][0] // limits["Ps"]
     trial.set_user_attr("Qs", val)
+    limits["Qs"] = val
     
     logging.debug("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
     logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
-    logging.debug("P: "+str(limits["Ps"]))
-    logging.debug("Q: "+str(limits["Qs"]))
     logging.debug(f"Limits : {str(limits)}")
     
     edit_HPL_dat(limits)
