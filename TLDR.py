@@ -4,9 +4,7 @@ import pickle
 import sys
 import os
 import logging
-import typing
-from typing import Any, List, Dict, Tuple
-import math
+from typing import Any, Dict, Tuple
 
 def load_logger():
     #----------------------------------------------
@@ -42,7 +40,7 @@ def main(data) -> None:
             logging.error(f"Error executing SLURM script: {e}")
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=20)
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=2)
 
     best_params = study.best_params
     best_value = study.best_value
@@ -94,10 +92,11 @@ def objective(trial, hyperparameters, runtimeparameters):
     
     # Choosing hyperparameter values
     #! We may want to potentially rename this variable for clarity
+
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
     val = runtimeparameters["Number Of Nodes"][0] * runtimeparameters["Cores Per Node Input"][0] // limits["Ps"]
     trial.set_user_attr("Qs", val)
-    #limits["Qs"] = trial.suggest_int("Qs", val, val) 
+    
     logging.debug("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
     logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
     logging.debug("P: "+str(limits["Ps"]))

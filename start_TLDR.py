@@ -2,12 +2,9 @@ import subprocess
 import logging
 import pickle
 import sys
-from typing import Any, List, Dict, Tuple
+from typing import Any, List, Dict
 
 #! Generate and sbatch tldr SLURM File
-
-# I replicated the structure of loading in the data input from dougal and the logger 
-# - not sure is the logger should be set up here or TLDR as it will still be needed there
 
 def load_logger():
     #----------------------------------------------
@@ -80,9 +77,9 @@ wget https://www.netlib.org/benchmark/hpl/hpl-2.3.tar.gz
 tar xzpf hpl-2.3.tar.gz  
 
 module purge
-module load {moduledata['MPI Modules'][0]}
-module load {moduledata['BLAS Modules'][0]}
 module load {moduledata['Compilers'][0]}
+module load {moduledata['BLAS Modules'][0]}
+module load {moduledata['MPI Modules'][0]}
 
 cd hpl-2.3 
 ./configure
@@ -104,18 +101,17 @@ def main(data) -> None:
     #----------------------------------------------
 
     # Generate the SLURM script content
-    # From what I understand from Arijus, all SLURM files are generated here with the values from dougal
-    # The only thing we would then need is the hyperparameter information
-
+    
     tldr_slurm_script = "SLURM/tldr.slurm"
     run_hpl_slurm_script = "SLURM/run_hpl.slurm"
-    setup_hpl_slurm_script = "SLURM/setup_hpl.slurm" # I may go through and change this name to prepare for new benchmarks, setup --> setup_hpl
+    setup_hpl_slurm_script = "SLURM/setup_hpl.slurm" 
 
     tldr_slurm_script_content    = generate_tldr_slurm_script_content(runtimeparameters)
     run_hpl_slurm_script_content = generate_run_hpl_slurm_script_content(runtimeparameters, moduledata)
     setup_hpl_slurm_script_content = generate_setup_hpl_slurm_script_content(runtimeparameters, moduledata)
 
     # Write the generated content to a SLURM script file
+    
     with open(tldr_slurm_script, "w") as f:
         f.write(tldr_slurm_script_content)
     with open(run_hpl_slurm_script, "w") as f:

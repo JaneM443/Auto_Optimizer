@@ -1,7 +1,9 @@
 import os
 import pickle
 
-USE_LOCAL_DATA = True #Keep this true Until I say so. Means Dougal input not required so only change if you know what youre doing
+# Keep this true Until I say so - Means Dougal input not required 
+
+USE_LOCAL_DATA = True 
 
 if USE_LOCAL_DATA == True:
 
