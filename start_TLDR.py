@@ -37,30 +37,6 @@ python3 TLDR.py data.input
 
     return content
 
-def generate_run_hpl_slurm_script_content(runtimeparameters, moduledata):
-    content = f"""\
-#!/bin/bash
-
-#SBATCH --nodes={runtimeparameters['Number Of Nodes'][0]}
-#SBATCH --ntasks={runtimeparameters['Cores Per Node Input'][0]}
-#SBATCH --mem={runtimeparameters['Memory Per Node GB'][0]}G
-#SBATCH --time=00:15:00
-#SBATCH --output=run_hpl_slurm_output.log
-#SBATCH --error=run_hpl_slurm_error.log
-#SBATCH --partition test
-module purge
-module load {moduledata['Compilers'][0]}
-module load {moduledata['BLAS Modules'][0]}
-module load {moduledata['MPI Modules'][0]}
-
-cd hpl-2.3
-cd testing
-
-mpirun -np {runtimeparameters['Number Of Nodes'][0]*runtimeparameters['Cores Per Node Input'][0]} ./xhpl > hpl.log 
-"""
-
-    return content
-
 def generate_setup_hpl_slurm_script_content(runtimeparameters, moduledata):
     content = f"""\
 #!/bin/bash
@@ -102,19 +78,15 @@ def main(data) -> None:
     # Generate the SLURM script content
     
     tldr_slurm_script = "SLURM/tldr.slurm"
-    run_hpl_slurm_script = "SLURM/run_hpl.slurm"
     setup_hpl_slurm_script = "SLURM/setup_hpl.slurm" 
 
     tldr_slurm_script_content    = generate_tldr_slurm_script_content(runtimeparameters)
-    run_hpl_slurm_script_content = generate_run_hpl_slurm_script_content(runtimeparameters, moduledata)
     setup_hpl_slurm_script_content = generate_setup_hpl_slurm_script_content(runtimeparameters, moduledata)
 
     # Write the generated content to a SLURM script file
     
     with open(tldr_slurm_script, "w") as f:
         f.write(tldr_slurm_script_content)
-    with open(run_hpl_slurm_script, "w") as f:
-        f.write(run_hpl_slurm_script_content)
     with open(setup_hpl_slurm_script, "w") as f:
         f.write(setup_hpl_slurm_script_content)
 
