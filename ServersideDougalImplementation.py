@@ -3,7 +3,7 @@ import pickle
 
 USE_LOCAL_DATA = True #Means Dougal input not required so only change if you know what you're doing
 
-if USE_LOCAL_DATA == True:
+if USE_LOCAL_DATA:
 
     #! Time data will need to be in hh:mm:ss format
 
