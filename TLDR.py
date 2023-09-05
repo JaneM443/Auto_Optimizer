@@ -63,16 +63,15 @@ def edit_HPL_dat(limits):
         file.write(hpl_file_data)
 
 def run_hpl_benchmark():
-    command = ["mpirun", "-np", "128", "./xhpl"]
+    shell_script = "SLURM/run_hpl.slurm"
     
-    with open("hpl.log", "w") as outfile:
-        try:
-            subprocess.run(command, stdout=outfile, check=True)
-            logging.debug("HPL benchmark executed successfully.")
-        
-        except subprocess.CalledProcessError as e:
-            logging.error(f"Error executing HPL benchmark: {e}")
-            raise e(f"Error executing HPL benchmark: {e}")
+    try:
+        subprocess.run(["bash", shell_script], check=True)
+        logging.debug("SLURM script executed successfully.")
+    
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error executing SLURM script: {e}")
+        raise e
 
 def retrieve_latest_gflops():
     with open('hpl-2.3/testing/hpl.log','r') as file:
