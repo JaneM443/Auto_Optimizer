@@ -7,9 +7,9 @@ if USE_LOCAL_DATA:
 
     #! Time data will need to be in hh:mm:ss format
 
-    data = ({'Ns': [100000, 100000], 'NBs': [32, 256], 'Ps': [1, 128], 'Qs': [1, 128]}, {'BLAS Modules': ['openblas'], 'MPI Modules': ['intelmpi'], 'Compilers': ['intel']}, {'Max Runtime In Hours': ["00:15:00"], 'Number Of Nodes': [1], 'Cores Per Node Input': [128], 'Memory Per Node GB': [120]})
+    data = ({'Ns': [1000, 1001], 'NBs': [32, 256], 'Ps': [1, 128], 'Qs': [1, 128]}, {'BLAS Modules': ['openblas'], 'MPI Modules': ['intelmpi'], 'Compilers': ['intel']}, {'Max Runtime In Hours': ["00:15:00"], 'Number Of Nodes': [1], 'Cores Per Node Input': [128], 'Memory Per Node GB': [120]})
 
     with open("data.input", "wb") as data_file:
         pickle.dump(data, data_file, protocol = 4)
 
-os.system("cd auto_optimizer; python3 start_TLDR.py data.input")
+os.system("python3 TLDR.py data.input")

@@ -4,7 +4,7 @@ import pickle
 import sys
 from typing import Any, List, Dict
 
-PARTITION = "multi"
+PARTITION = "test"
 
 #! Generate and sbatch tldr SLURM File
 
@@ -82,7 +82,7 @@ module load {moduledata['BLAS Modules'][0]}
 module load {moduledata['MPI Modules'][0]}
 
 cd hpl-2.3 
-./configure -
+./configure
 make clean
 make
 """

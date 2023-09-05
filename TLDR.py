@@ -42,7 +42,7 @@ def main(data) -> None:
             raise e
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=200))
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=200)
 
     best_params = study.best_params
     best_value = study.best_value
@@ -63,16 +63,18 @@ def edit_HPL_dat(limits):
         file.write(hpl_file_data)
 
 def run_hpl_benchmark():
-    command = ["mpirun", "-np", "128", "hpl-2.3/testing/./xhpl"]
+    #command = ["mpirun", "-np", "128", "./xhpl"]
+    COMMAND = f"mpirun -np 128 ./xhpl > hpl.log"
     
-    with open("hpl.log", "w") as outfile:
+    with open("hpl.log", "a") as outfile:
         try:
-            subprocess.run(command, stdout=outfile, check=True)
+            #subprocess.run(command, stdout=outfile, check=True)
+            os.system(COMMAND)
             logging.debug("HPL benchmark executed successfully.")
         
         except subprocess.CalledProcessError as e:
             logging.error(f"Error executing HPL benchmark: {e}")
-            raise e(f"Error executing HPL benchmark: {e}")
+            raise e
 
 def retrieve_latest_gflops():
     with open('hpl-2.3/testing/hpl.log','r') as file:
