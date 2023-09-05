@@ -12,7 +12,7 @@ def load_logger():
     #----------------------------------------------
     AUTO_CLEAR = True
     logging.basicConfig(
-        filename = "output.log",
+        filename = "TLDR_output.log",
         level = logging.DEBUG,
         filemode = 'a' if AUTO_CLEAR == False else 'w',
         format = "%(levelname)s | %(asctime)s | '%(message)s' | %(funcName)s%(args)s @ line %(lineno)d in %(filename)s from %(module)s | StackInfo : %(stack_info)s | ProcessInfo : %(processName)s(%(process)d) | ThreadInfo : %(threadName)s(%(thread)d)"
@@ -40,9 +40,10 @@ def main(data) -> None:
             logging.debug("SLURM script executed successfully.")
         except subprocess.CalledProcessError as e:
             logging.error(f"Error executing SLURM script: {e}")
+            raise e
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=20)
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=200)
 
     best_params = study.best_params
     best_value = study.best_value
@@ -71,7 +72,7 @@ def run_hpl_benchmark():
     
     except subprocess.CalledProcessError as e:
         logging.error(f"Error executing SLURM script: {e}")
-        raise e(f"Error executing SLURM script: {e}")
+        raise e
 
 def retrieve_latest_gflops():
     with open('hpl-2.3/testing/hpl.log','r') as file:
@@ -96,8 +97,7 @@ def objective(trial, hyperparameters, runtimeparameters):
     #! We may want to potentially rename this variable for clarity
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
     val = runtimeparameters["Number Of Nodes"][0] * runtimeparameters["Cores Per Node Input"][0] // limits["Ps"]
-    trial.set_user_attr("Qs", val)
-    #limits["Qs"] = trial.suggest_int("Qs", val, val) 
+    limits["Qs"] = val
     logging.debug("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
     logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
     logging.debug("P: "+str(limits["Ps"]))
@@ -108,10 +108,6 @@ def objective(trial, hyperparameters, runtimeparameters):
     run_hpl_benchmark()
 
     gflops = retrieve_latest_gflops()
-
-    if trial.should_prune():
-        logging.info("Trial pruned")
-        raise optuna.exceptions.TrialPruned()
 
     return gflops
 
