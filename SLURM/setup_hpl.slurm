@@ -12,9 +12,9 @@ wget https://www.netlib.org/benchmark/hpl/hpl-2.3.tar.gz
 tar xzpf hpl-2.3.tar.gz  
 
 module purge
-module load openmpi
-module load openblas
 module load gcc
+module load openblas
+module load openmpi
 
 cd hpl-2.3 
 ./configure -
