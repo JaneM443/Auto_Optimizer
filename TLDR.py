@@ -34,14 +34,14 @@ def main(data) -> None:
     folder_path = "hpl-2.3/"
     file_path = "hpl-2.3.tar.gz"
     
-    logging.info("Running 'SLURM/setup_hpl.slurm'")
+    logging.info("Running 'SLURM/setup_hpl.sh'")
     try:
         shutil.rmtree(folder_path)
         os.remove(file_path)
     except OSError as e:
         print(f"Error: {folder_path} could not be removed - {e}")
 
-    slurm_script_path = 'SLURM/setup_hpl.slurm'
+    slurm_script_path = 'SLURM/setup_hpl.sh'
     #Run the SLURM script directly
     try:
         subprocess.run(['bash', slurm_script_path], check=True)
@@ -52,7 +52,7 @@ def main(data) -> None:
         
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters, moduledata), n_trials=2)
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=200)
 
     best_params = study.best_params
     best_value = study.best_value
@@ -72,26 +72,16 @@ def edit_HPL_dat(limits):
     with open("hpl-2.3/testing/HPL.dat", 'w') as file:
         file.write(hpl_file_data)
 
-def run_hpl_benchmark(runtimeparameters, moduledata):
-    val = str(runtimeparameters['Number Of Nodes'][0]*runtimeparameters['Cores Per Node Input'][0])
-    command = ["mpirun", "-np", val, "./xhpl"]
+def run_hpl_benchmark(runtimeparameters):
 
+    slurm_script_path = 'SLURM/run_hpl.sh'
+    #Run the SLURM script directly
     try:
-        subprocess.run(["module", "load", moduledata['Compilers'][0]], check=True)
-        subprocess.run(["module", "load", moduledata['BLAS Modules'][0]], check=True)
-        subprocess.run(["module", "load", moduledata['MPI Modules'][0]], check=True)
-        print(f"Loaded modules successfully.")
+        subprocess.run(['bash', slurm_script_path], check=True)
+        logging.debug("SLURM script executed successfully.")
     except subprocess.CalledProcessError as e:
-        print(f"Error loading modules: {e}")
-    
-    with open("hpl-2.3/testing/hpl.log", "w") as outfile:
-        try:
-            subprocess.Popen(command, stdout=outfile, stderr=subprocess.STDOUT)
-            logging.debug("HPL benchmark executed successfully.")
-        
-        except subprocess.CalledProcessError as e:
-            logging.error(f"Error executing HPL benchmark: {e}")
-            raise e
+        logging.error(f"Error executing SLURM script: {e}")
+        raise e
 
 def retrieve_latest_gflops():
     with open('hpl-2.3/testing/hpl.log','r') as file:
@@ -109,22 +99,22 @@ def retrieve_latest_gflops():
 
     return float(Gflops[0])
 
-def objective(trial, hyperparameters, runtimeparameters, moduledata):
+def objective(trial, hyperparameters, runtimeparameters):
     hyperparameter_names = [name for name in hyperparameters.keys()]
     
     # Choosing hyperparameter values
-    #! We may want to potentially rename this variable for clarity
 
+    cores = 12
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
-    val = runtimeparameters["Number Of Nodes"][0] * runtimeparameters["Cores Per Node Input"][0] // limits["Ps"]
-    trial.set_user_attr("Qs", val)
-    #limits["Qs"] = trial.suggest_int("Qs", val, val) 
+    val = cores // limits["Ps"]
+    limits["Qs"] = val
+
     logging.debug("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
     logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
     logging.debug(f"Limits : {str(limits)}")
     
     edit_HPL_dat(limits)
-    run_hpl_benchmark(runtimeparameters, moduledata)
+    run_hpl_benchmark(runtimeparameters)
 
     gflops = retrieve_latest_gflops()
 
