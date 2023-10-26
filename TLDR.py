@@ -52,7 +52,7 @@ def main(data) -> None:
         
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=200)
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=runtimeparameters["Number Of Trials"])
 
     best_params = study.best_params
     best_value = study.best_value

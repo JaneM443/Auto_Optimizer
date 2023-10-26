@@ -47,7 +47,7 @@ cd testing
 module load openblas
 module load openmpi
 
-OMP_NUM_THREADS=1 mpirun -np 24 --host cn01,cn02,cn03,cn04 ./xhpl > hpl.log 
+OMP_NUM_THREADS=1 mpirun -np {runtimeparameters['Number Of Nodes'][0] * runtimeparameters['Cores Per Node Input'][0]} ./xhpl > hpl.log 
     """
 
     return content
