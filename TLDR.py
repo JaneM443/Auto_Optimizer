@@ -52,7 +52,7 @@ def main(data) -> None:
         
 
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=runtimeparameters["Number Of Trials"])
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=runtimeparameters["Number Of Trials"][0])
 
     best_params = study.best_params
     best_value = study.best_value
@@ -104,10 +104,15 @@ def objective(trial, hyperparameters, runtimeparameters):
     
     # Choosing hyperparameter values
 
-    cores = 12
-    limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names}
-    val = cores // limits["Ps"]
-    limits["Qs"] = val
+    number_of_ranks = runtimeparameters["Number Of Nodes"][0]*runtimeparameters["Cores Per Node Input"][0]
+
+    limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names if key not in ("Ps", "Qs")}
+    divisors = [divisor for divisor in range(hyperparameters["Ps"][0], hyperparameters["Ps"][1]) if number_of_ranks % divisor == 0]
+
+    Ps = trial.suggest_categorical("Ps", divisors)
+    Qs = number_of_ranks // Ps
+
+    limits.update({"Ps":Ps, "Qs":Qs})
 
     logging.debug("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
     logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
