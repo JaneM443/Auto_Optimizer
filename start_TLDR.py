@@ -132,6 +132,9 @@ if __name__ == "__main__":
         current_max_id = max(int(dir_id) for dir_id in current_directory_id_list)
         next_directory_id = current_max_id + 1
 
+    if os.path.isdir("outputs") == False:
+        os.mkdir("outputs")
+
     output_file_path = f"outputs/{next_directory_id}"
 
     load_logger(output_file_path)

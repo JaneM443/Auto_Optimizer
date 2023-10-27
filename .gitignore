@@ -1,3 +1,6 @@
 hpl-2.3
 *.log
 HPL.dat
+run_hpl.sh
+setup_hpl.sh
+tldr.sh
