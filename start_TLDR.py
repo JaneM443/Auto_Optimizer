@@ -51,9 +51,9 @@ def generate_run_hpl_slurm_script_content(runtimeparameters, moduledata, output_
 cd hpl-2.3
 cd testing
 
-{"source /apps/intel/setvars.sh" if moduledata["Compilers"][0] == "intel" else f'module load {moduledata["BLAS Modules"][0]} {moduledata["MPI Modules"][0]} {moduledata["Compilers"][0]} '}
+{f"source /apps/intel/setvars.sh{newline}module load hpl/intel" if moduledata["Compilers"][0] == "intel" else f'module load {moduledata["BLAS Modules"][0]} {moduledata["MPI Modules"][0]} {moduledata["Compilers"][0]} '}
 
-{f"mca_params='--mca btl tcp,self --mca btl_tcp_if_include eth0 --mca mtl ^psm2'{newline}OMP_NUM_THREADS=1 mpirun $mca_params -np {runtimeparameters['Number Of Nodes'][0] * runtimeparameters['Cores Per Node Input'][0]} ./xhpl > hpl.log" if moduledata["Compilers"][0] != "intel" else f"OMP_NUM_THREADS=1 mpirun -np {runtimeparameters['Number Of Nodes'][0] * runtimeparameters['Cores Per Node Input'][0]} ./xhpl > hpl.log"} 
+{f"mca_params='--mca btl tcp,self --mca btl_tcp_if_include eth0 --mca mtl ^psm2'{newline}OMP_NUM_THREADS=1 mpirun $mca_params -np {runtimeparameters['Number Of Nodes'][0] * runtimeparameters['Cores Per Node Input'][0]} ./xhpl > hpl.log" if moduledata["Compilers"][0] != "intel" else f"export OMP_NUM_THREADS=1{newline}export I_MPI_FABRICS=ofi{newline}export FI_PROVIDER=tcp{newline}OMP_NUM_THREADS=1 mpirun -np {runtimeparameters['Number Of Nodes'][0] * runtimeparameters['Cores Per Node Input'][0]} xhpl > hpl.log"} 
     """
 
     return content
