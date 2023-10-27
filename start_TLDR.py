@@ -79,7 +79,7 @@ module load {moduledata["BLAS Modules"][0]}
 module load {moduledata["MPI Modules"][0]}
 
 cd hpl-2.3 
-./configure --prefix=$HOME/Auto_Optimizer
+./configure --prefix=$HOME/Auto_Optimizer CFLAGS="-O3 -march=native"
 make clean
 make -j 8
 make install -j8
