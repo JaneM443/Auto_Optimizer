@@ -8,10 +8,16 @@ import logging
 from typing import Any, Dict, Tuple, List
 
 def load_logger():
+
     #----------------------------------------------
+    current_directory_id_list = os.listdir("outputs")
+
+    current_max_id = max(int(dir_id) for dir_id in current_directory_id_list)
+
+    dir_path = f"outputs/{current_max_id}"
     AUTO_CLEAR = True
     logging.basicConfig(
-        filename = "TLDR_output.log",
+        filename = f"{dir_path}/TLDR_output.log",
         level = logging.DEBUG,
         filemode = 'a' if AUTO_CLEAR == False else 'w',
         format = "%(levelname)s | %(asctime)s | '%(message)s' | %(funcName)s%(args)s @ line %(lineno)d in %(filename)s from %(module)s | StackInfo : %(stack_info)s | ProcessInfo : %(processName)s(%(process)d) | ThreadInfo : %(threadName)s(%(thread)d)"
@@ -49,8 +55,10 @@ def main(data) -> None:
     except subprocess.CalledProcessError as e:
         logging.error(f"Error executing SLURM script: {e}")
         raise e
-        
 
+    logging.debug("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
+    logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
+        
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
     study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=runtimeparameters["Number Of Trials"][0])
 
@@ -114,14 +122,13 @@ def objective(trial, hyperparameters, runtimeparameters):
 
     limits.update({"Ps":Ps, "Qs":Qs})
 
-    logging.debug("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
-    logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
-    logging.debug(f"Limits : {str(limits)}")
+    logging.info(f"Limits : {str(limits)}")
     
     edit_HPL_dat(limits)
     run_hpl_benchmark(runtimeparameters)
 
     gflops = retrieve_latest_gflops()
+    logging.info(f"Gflops : {gflops}")
 
     return gflops
 
