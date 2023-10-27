@@ -6,6 +6,7 @@ import os
 import shutil
 import logging
 from typing import Any, Dict, Tuple, List
+import time
 
 def load_logger():
 
@@ -108,6 +109,8 @@ def retrieve_latest_gflops():
     return float(Gflops[0])
 
 def objective(trial, hyperparameters, runtimeparameters):
+    current_time = time.perf_counter()
+    logging.info("Trial Started")
     hyperparameter_names = [name for name in hyperparameters.keys()]
     
     # Choosing hyperparameter values
@@ -129,6 +132,10 @@ def objective(trial, hyperparameters, runtimeparameters):
 
     gflops = retrieve_latest_gflops()
     logging.info(f"Gflops : {gflops}")
+
+
+    delta_time = time.perf_counter() - current_time
+    logging.info(f"Trial Ended : Elapsed time |{delta_time}|")
 
     return gflops
 

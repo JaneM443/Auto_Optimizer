@@ -38,7 +38,7 @@ python3 TLDR.py data.input
 
     return content
 
-def generate_run_hpl_slurm_script_content(runtimeparameters, output_file_path):
+def generate_run_hpl_slurm_script_content(runtimeparameters, moduledata, output_file_path):
     content = f"""\
 #!/bin/bash
 
@@ -50,10 +50,12 @@ def generate_run_hpl_slurm_script_content(runtimeparameters, output_file_path):
 cd hpl-2.3
 cd testing
 
-module load openblas
-module load openmpi
 
-OMP_NUM_THREADS=1 mpirun -np {runtimeparameters['Number Of Nodes'][0] * runtimeparameters['Cores Per Node Input'][0]} ./xhpl > hpl.log 
+module load {moduledata["BLAS Modules"][0]}
+module load {moduledata["MPI Modules"][0]}
+
+mca_params="--mca btl tcp,self --mca btl_tcp_if_include eth0 --mca mtl ^psm2"
+OMP_NUM_THREADS=1 mpirun $mca_params -np {runtimeparameters['Number Of Nodes'][0] * runtimeparameters['Cores Per Node Input'][0]} ./xhpl > hpl.log 
     """
 
     return content
@@ -69,10 +71,10 @@ def generate_setup_hpl_slurm_script_content(runtimeparameters, moduledata, outpu
 #SBATCH --error={output_file_path}/setup_hpl_slurm_script_error.log
 
 wget https://www.netlib.org/benchmark/hpl/hpl-2.3.tar.gz  
-tar xzpf hpl-2.3.tar.gz  
+tar xzf hpl-2.3.tar.gz  
 
 module purge
-module load {moduledata["Compilers"][0]}
+
 module load {moduledata["BLAS Modules"][0]}
 module load {moduledata["MPI Modules"][0]}
 
@@ -104,7 +106,7 @@ def main(data, output_file_path) -> None:
 
     tldr_slurm_script_content    = generate_tldr_slurm_script_content(runtimeparameters, output_file_path)
     setup_hpl_slurm_script_content = generate_setup_hpl_slurm_script_content(runtimeparameters, moduledata, output_file_path)
-    run_hpl_slurm_script_content = generate_run_hpl_slurm_script_content(runtimeparameters, output_file_path)
+    run_hpl_slurm_script_content = generate_run_hpl_slurm_script_content(runtimeparameters, moduledata, output_file_path)
 
     # Write the generated content to a SLURM script file
     
