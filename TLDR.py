@@ -120,19 +120,20 @@ def objective(trial, hyperparameters, runtimeparameters):
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names if key not in ("Ps", "Qs")}
     divisors = [divisor for divisor in range(hyperparameters["Ps"][0], hyperparameters["Ps"][1]) if number_of_ranks % divisor == 0]
 
-    # Ps = trial.suggest_categorical("Ps", divisors)
-    # Qs = number_of_ranks // Ps
+    Ps = trial.suggest_categorical("Ps", divisors)
+    Qs = number_of_ranks // Ps
 
     #! Temporary remove once latency is gone
-    Ps = 1
-    Qs = number_of_ranks
-
     limits.update({"Ps":Ps, "Qs":Qs})
 
     logging.info(f"Limits : {str(limits)}")
     
+    
     edit_HPL_dat(limits)
+    
+    os.system("echo `date -u` > hpl_submission.tstamps")
     run_hpl_benchmark(runtimeparameters)
+    os.system("echo `date -u` >> hpl_submission.tstamps")
 
     gflops = retrieve_latest_gflops()
     logging.info(f"Gflops : {gflops}")
