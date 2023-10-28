@@ -8,17 +8,12 @@ import logging
 from typing import Any, Dict, Tuple, List
 import time
 
-def load_logger():
+def load_logger(output_file_path):
 
     #----------------------------------------------
-    current_directory_id_list = os.listdir("outputs")
-
-    current_max_id = max(int(dir_id) for dir_id in current_directory_id_list)
-
-    dir_path = f"outputs/{current_max_id}"
     AUTO_CLEAR = True
     logging.basicConfig(
-        filename = f"{dir_path}/TLDR_output.log",
+        filename = f"{output_file_path}/TLDR_output.log",
         level = logging.DEBUG,
         filemode = 'a' if AUTO_CLEAR == False else 'w',
         format = "%(levelname)s | %(asctime)s | '%(message)s' | %(funcName)s%(args)s @ line %(lineno)d in %(filename)s from %(module)s | StackInfo : %(stack_info)s | ProcessInfo : %(processName)s(%(process)d) | ThreadInfo : %(threadName)s(%(thread)d)"
@@ -27,7 +22,7 @@ def load_logger():
     logging.info("Logger Loaded")
     #----------------------------------------------
 
-def main(data) -> None:
+def main(data, output_file_path) -> None:
                              # dict[param_name: tuple[param_minimum, param_maximum]]
     hyperparameters          : Dict[str       : Tuple[Any          , Any          ]] = data[0]
 
@@ -61,7 +56,7 @@ def main(data) -> None:
     logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
         
     study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=runtimeparameters["Number Of Trials"][0])
+    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters, output_file_path), n_trials=runtimeparameters["Number Of Trials"][0])
 
     best_params = study.best_params
     best_value = study.best_value
@@ -108,7 +103,7 @@ def retrieve_latest_gflops():
 
     return float(Gflops[0])
 
-def objective(trial, hyperparameters, runtimeparameters):
+def objective(trial, hyperparameters, runtimeparameters, output_file_path):
     current_time = time.perf_counter()
     logging.info("Trial Started")
     hyperparameter_names = [name for name in hyperparameters.keys()]
@@ -120,8 +115,11 @@ def objective(trial, hyperparameters, runtimeparameters):
     limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names if key not in ("Ps", "Qs")}
     divisors = [divisor for divisor in range(hyperparameters["Ps"][0], hyperparameters["Ps"][1]) if number_of_ranks % divisor == 0]
 
-    Ps = trial.suggest_categorical("Ps", divisors)
-    Qs = number_of_ranks // Ps
+    # Ps = trial.suggest_categorical("Ps", divisors)
+    # Qs = number_of_ranks // Ps
+
+    Ps = 2
+    Qs = number_of_ranks // 2
 
     #! Temporary remove once latency is gone
     limits.update({"Ps":Ps, "Qs":Qs})
@@ -130,10 +128,10 @@ def objective(trial, hyperparameters, runtimeparameters):
     
     
     edit_HPL_dat(limits)
-    
-    os.system("echo `date -u` > hpl_submission.tstamps")
+    os.system(f"echo ---------------------------------- >> {output_file_path}/hpl_submission.tstamps")
+    os.system(f"echo `date -u` >> {output_file_path}/hpl_submission.tstamps")
     run_hpl_benchmark(runtimeparameters)
-    os.system("echo `date -u` >> hpl_submission.tstamps")
+    os.system(f"echo `date -u` >> {output_file_path}/hpl_submission.tstamps")
 
     gflops = retrieve_latest_gflops()
     logging.info(f"Gflops : {gflops}")
@@ -148,7 +146,13 @@ if __name__ == "__main__":
 
     FILE_PATH = sys.argv[1]
 
-    load_logger()
+    current_directory_id_list = os.listdir("outputs")
+
+    current_max_id = max(int(dir_id) for dir_id in current_directory_id_list)
+
+    dir_path = f"outputs/{current_max_id}"
+
+    load_logger(dir_path)
 
     try:
         with open(FILE_PATH, "rb") as file:
@@ -158,4 +162,4 @@ if __name__ == "__main__":
         logging.critical(f"Error with loading Dougal data: {type(exception).__name__} - {exception}")
         raise Exception
 
-    main(data)                  
+    main(data, dir_path)                  
