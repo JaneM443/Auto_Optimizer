@@ -1,18 +1,15 @@
 #!/bin/bash
 
-#SBATCH --nodes=70
-#SBATCH --ntasks-per-node=24
-#SBATCH --output=outputs/42/run_hpl_slurm_script_output.log
-#SBATCH --error=outputs/42run_hpl_slurm_script_error.log
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=12
+#SBATCH --output=outputs/3/run_hpl_slurm_script_output.log
+#SBATCH --error=outputs/3run_hpl_slurm_script_error.log
 
 cd hpl-2.3
 cd testing
 
-source /apps/intel/setvars.sh
-module load hpl/intel
+module load intel
+module load openblas
+module load openmpi
 
-export OMP_NUM_THREADS=1
-export I_MPI_FABRICS=ofi
-export FI_PROVIDER=tcp
-OMP_NUM_THREADS=1 mpirun -np 1680 xhpl > hpl.log 
-    
+OMP_NUM_THREADS=1 mpirun -np 12 xhpl > hpl.log 
