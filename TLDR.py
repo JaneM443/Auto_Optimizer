@@ -8,39 +8,45 @@ import logging
 from typing import Any, Dict, Tuple, List
 import time
 
-def load_logger():
+###-------------------------------------------------------------------------###
+### Runs multiple trials and logs results                                   ###
+###-------------------------------------------------------------------------###
 
-    #----------------------------------------------
-    current_directory_id_list = os.listdir("outputs")
-
-    current_max_id = max(int(dir_id) for dir_id in current_directory_id_list)
-
-    dir_path = f"outputs/{current_max_id}"
+def load_logger(output_file_path):
+    ###---------------------------------------------------------------------###
+    ### Configure logging format, sending all files to that directory       ###
+    ###---------------------------------------------------------------------###
+    
     AUTO_CLEAR = True
     logging.basicConfig(
-        filename = f"{dir_path}/TLDR_output.log",
+        filename = f"{output_file_path}/TLDR_output.log",
         level = logging.DEBUG,
         filemode = 'a' if AUTO_CLEAR == False else 'w',
-        format = "%(levelname)s | %(asctime)s | '%(message)s' | %(funcName)s%(args)s @ line %(lineno)d in %(filename)s from %(module)s | StackInfo : %(stack_info)s | ProcessInfo : %(processName)s(%(process)d) | ThreadInfo : %(threadName)s(%(thread)d)"
+        format = "%(levelname)s | %(asctime)s | '%(message)s'"
         )
 
     logging.info("Logger Loaded")
-    #----------------------------------------------
+
+    #-----------------------------------------------------------------------###
 
 def main(data) -> None:
-                             # dict[param_name: tuple[param_minimum, param_maximum]]
-    hyperparameters          : Dict[str       : Tuple[Any          , Any          ]] = data[0]
+    ###---------------------------------------------------------------------###
+    ### Sets up, runs and concludes the full trial
+    ###---------------------------------------------------------------------###
 
-                            # dict[module_type: list[module1, ...]]
-    moduledata               : Dict[str        : List[str    , ...]] = data[1]
+                            # Dict[Param Name: Tuple[Min, Max]] (Ns, Ps)
+    hyperparameters         : Dict[str       : Tuple[Any, Any]] = data[0]
 
-                             # dict[parameter_name: parameter_value]
-    runtimeparameters        : Dict[str           : Any            ] = data[2]
+                            # Dict[Parameter Name: Value] (SLURM Parameters)
+    runtimeparameters       : Dict[str           : Any            ] = data[2]
 
-    #----------------------------------------------
+    # HPL file paths
+
     folder_path = "hpl-2.3/"
     file_path = "hpl-2.3.tar.gz"
     
+    # Remove HPL and run setup from scratch
+
     logging.info("Running 'SLURM/setup_hpl.sh'")
     try:
         shutil.rmtree(folder_path)
@@ -49,29 +55,41 @@ def main(data) -> None:
         print(f"Error: {folder_path} could not be removed - {e}")
 
     slurm_script_path = 'SLURM/setup_hpl.sh'
-    #Run the SLURM script directly
     try:
         subprocess.run(['bash', slurm_script_path], check=True)
         logging.debug("SLURM script executed successfully.")
     except subprocess.CalledProcessError as e:
         logging.error(f"Error executing SLURM script: {e}")
         raise e
+    
+    # Create optuna study and runs the full trial
 
-    logging.debug("nodes: "+str(runtimeparameters["Number Of Nodes"][0]))
-    logging.debug("cores: "+str(runtimeparameters["Cores Per Node Input"][0]))
-        
-    study = optuna.create_study(direction = "maximize",pruner=optuna.pruners.MedianPruner())
-    study.optimize(lambda trial : objective(trial, hyperparameters, runtimeparameters), n_trials=runtimeparameters["Number Of Trials"][0])
+    study = optuna.create_study(direction = "maximize", 
+                                pruner=optuna.pruners.MedianPruner())
+    study.optimize(lambda trial : objective(trial, 
+                                            hyperparameters, 
+                                            runtimeparameters), 
+                   n_trials = runtimeparameters["Number Of Trials"][0])
+
+    # Returns the best parameters found from the trials
 
     best_params = study.best_params
     best_value = study.best_value
     best_trial = study.best_trial
 
+    # Logs those results
+
     logging.info("Best Parameters: "+str(best_params))
     logging.info("Best Value: "+str(best_value))
     logging.info("Best Study: "+str(best_trial))
 
+    #-----------------------------------------------------------------------###
+
 def edit_HPL_dat(limits):
+    ###---------------------------------------------------------------------###
+    ### Changes parameters in HPL dat
+    ###---------------------------------------------------------------------###
+
     with open('Extra/HPL.dat.scaffold', 'r') as file:
         hpl_file_data = file.read()
 
@@ -81,18 +99,29 @@ def edit_HPL_dat(limits):
     with open("hpl-2.3/testing/HPL.dat", 'w') as file:
         file.write(hpl_file_data)
 
-def run_hpl_benchmark(runtimeparameters):
+    #-----------------------------------------------------------------------###
+
+def run_hpl_benchmark():
+    ###---------------------------------------------------------------------###
+    ### Runs one HPL trial
+    ###---------------------------------------------------------------------###
 
     slurm_script_path = 'SLURM/run_hpl.sh'
-    #Run the SLURM script directly
+   
     try:
         subprocess.run(['bash', slurm_script_path], check=True)
         logging.debug("SLURM script executed successfully.")
     except subprocess.CalledProcessError as e:
         logging.error(f"Error executing SLURM script: {e}")
         raise e
+    
+    #-----------------------------------------------------------------------###
 
 def retrieve_latest_gflops():
+    ###---------------------------------------------------------------------###
+    ### Extracts GFLOPS data from HPL log file
+    ###---------------------------------------------------------------------###
+
     with open('hpl-2.3/testing/hpl.log','r') as file:
         hpl_log_lines = file.readlines()
 
@@ -108,19 +137,37 @@ def retrieve_latest_gflops():
 
     return float(Gflops[0])
 
+    #-----------------------------------------------------------------------###
+
 def objective(trial, hyperparameters, runtimeparameters):
+    ###---------------------------------------------------------------------###
+    ### The study, lays out method for each trial
+    ###---------------------------------------------------------------------###
+
+    # Logging information
+
     current_time = time.perf_counter()
     logging.info("Trial Started")
     hyperparameter_names = [name for name in hyperparameters.keys()]
     
     # Choosing hyperparameter values
 
-    number_of_ranks = runtimeparameters["Number Of Nodes"][0]*runtimeparameters["Cores Per Node Input"][0]
+    nodes = runtimeparameters["Number Of Nodes"][0]
+    cores = runtimeparameters["Cores Per Node"][0]
+    number_of_ranks = nodes*cores
 
-    limits = {key: trial.suggest_int(key, hyperparameters[key][0], hyperparameters[key][1]) for key in hyperparameter_names if key not in ("Ps", "Qs")}
-    divisors = [divisor for divisor in range(hyperparameters["Ps"][0], hyperparameters["Ps"][1]) if number_of_ranks % divisor == 0]
-
+    # Optuna picks a value within the user specified range for hyperparameters
+    limits = {key: trial.suggest_int(key, 
+                                     hyperparameters[key][0], 
+                                     hyperparameters[key][1]) 
+                for key in hyperparameter_names if key not in ("Ps", "Qs")}
+    # Selects possible P values in the user specified range that divide ranks
+    divisors = [divisor for divisor in range(hyperparameters["Ps"][0], 
+                                             hyperparameters["Ps"][1]) 
+                                             if number_of_ranks % divisor == 0]
+    # Optuna selects one of these divisors
     Ps = trial.suggest_categorical("Ps", divisors)
+    # Q is then fixed by this choice
     Qs = number_of_ranks // Ps
 
     #! Temporary remove once latency is gone
@@ -128,13 +175,15 @@ def objective(trial, hyperparameters, runtimeparameters):
 
     logging.info(f"Limits : {str(limits)}")
     
-    
-    edit_HPL_dat(limits)
-    
-    os.system("echo `date -u` > hpl_submission.tstamps")
-    run_hpl_benchmark(runtimeparameters)
-    os.system("echo `date -u` >> hpl_submission.tstamps")
+    # Run Benchmark with these values and extract GFLOPS
 
+    # Update HPL dat file
+    edit_HPL_dat(limits)
+    # Run the HPL benchmark while time stamping 
+    os.system("echo `date -u` > hpl_submission.tstamps")
+    run_hpl_benchmark()
+    os.system("echo `date -u` >> hpl_submission.tstamps")
+    # Retrieve result of trial
     gflops = retrieve_latest_gflops()
     logging.info(f"Gflops : {gflops}")
 
@@ -144,11 +193,26 @@ def objective(trial, hyperparameters, runtimeparameters):
 
     return gflops
 
+    #-----------------------------------------------------------------------###
+
 if __name__ == "__main__":
+    
+    ###----------------------------------------------------------------------###
+    ### User interacts here to change run parameters                         ###
+    ###----------------------------------------------------------------------###
+    
+    # File path for current logging
+    current_directories = os.listdir("Outputs")
+    current_id = max(int(dir_id) for dir_id in current_directories)
+
+    output_file_path = f"Outputs/{current_id}"
+
+    load_logger(output_file_path) # Points logger to directory
+
+
+    # Loads data from ServersideDougal
 
     FILE_PATH = sys.argv[1]
-
-    load_logger()
 
     try:
         with open(FILE_PATH, "rb") as file:
@@ -159,3 +223,5 @@ if __name__ == "__main__":
         raise Exception
 
     main(data)                  
+
+    #-----------------------------------------------------------------------###

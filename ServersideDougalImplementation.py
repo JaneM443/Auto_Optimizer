@@ -1,15 +1,52 @@
 import os
 import pickle
 
-USE_LOCAL_DATA = True #Means Dougal input not required so only change if you know what you're doing
+###-------------------------------------------------------------------------###
+### User interacts here to change run parameters                            ###
+###-------------------------------------------------------------------------###
+
+USE_LOCAL_DATA = True # The HPL data is defined here
 
 if USE_LOCAL_DATA:
 
-    #! Time data will need to be in hh:mm:ss format
+    """
+    ###---------------------------------------------------------------------###
+   
+    Manually defines the trial data
+    
+    : param              Ns : Matrix size range
+    : param              Ps : Process grid size range
+    : param            BLAS : BLAS Module
+    : param             MPI : MPI Module
+    : param        Compiler : Compiler Module
+    : param         Runtime : Max runtime for the SLURM job in hh:mm:ss
+    : param           Nodes : Number of nodes for each trial
+    : param  Cores per Node : Cores per node
+    : param Memory per Node : Memory per node
+    : param          Trials : Number of trials
+    
+    ###---------------------------------------------------------------------###
+    """
 
-    data = ({'Ns': [150, 200], 'Ps': [1, 12]}, {'BLAS Modules': ['openblas'], 'MPI Modules': ['openmpi'], 'Compilers': ['intel']}, {'Max Runtime In Hours': ["12:00:00"], 'Number Of Nodes': [1], 'Cores Per Node Input': [12], 'Memory Per Node GB': [128], 'Number Of Trials' : [100]})
+    data = ({'Ns': [120000, 130000], 
+             'Ps': [16, 32]
+            }, 
+            {'BLAS'     : ['openblas'], 
+             'MPI'      : ['openmpi'], 
+             'Compiler' : ['gcc']
+            }, 
+            {'Max Runtime In Hours' : ["72:00:00"], 
+             'Number Of Nodes'      : [4], 
+             'Cores Per Node'       : [128], 
+             'Memory Per Node GB'   : [128], 
+             'Number Of Trials'     : [1]
+            }
+            )
+
+    # Passes data to a pickle file, for TLDR to import
 
     with open("data.input", "wb") as data_file:
         pickle.dump(data, data_file, protocol = 4)
 
-os.system("python3 start_TLDR.py data.input")
+
+os.system("python3 start_TLDR.py data.input") # Calls start_TLDR
