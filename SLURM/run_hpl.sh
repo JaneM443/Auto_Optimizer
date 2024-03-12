@@ -2,8 +2,8 @@
 
 #SBATCH --nodes=4
 #SBATCH --ntasks-per-node=128
-#SBATCH --output=Outputs/7/run_hpl_slurm_script_output.log
-#SBATCH --error=Outputs/7run_hpl_slurm_script_error.log
+#SBATCH --output=Outputs/9/run_hpl_slurm_script_output.log
+#SBATCH --error=Outputs/9run_hpl_slurm_script_error.log
 
 cd hpl-2.3
 cd testing
